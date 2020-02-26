@@ -28,7 +28,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>kon</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -1020,7 +1020,7 @@ color: rgb(225, 225, 226);</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>81</width>
+            <width>98</width>
             <height>39</height>
            </rect>
           </property>

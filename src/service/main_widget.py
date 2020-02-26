@@ -570,7 +570,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Music Player"))
+        Form.setWindowTitle(_translate("Form", "kon"))
         self.music_count.setText(_translate("Form", "歌曲数\n"
                                                     "7"))
         self.music_list_image.setText(_translate("Form", "TextLabel"))
