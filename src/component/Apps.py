@@ -1,7 +1,7 @@
 import os
 
 
-class AppAttribute(object):
+class Apps(object):
     # 应用名称
     app_name = "Rikka Player"
 

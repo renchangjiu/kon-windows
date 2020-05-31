@@ -290,7 +290,7 @@ def __usage():
     # path = r"D:/13595/Music/李玉刚 石头 - 雨花石.MP3"
     # path = r"D:\13595\Music\周杰伦\周杰伦 - 最长的电影.mp3"
     # path = r"D:\13595\Music\乐正绫 言和 - 清明上河图.mp3"
-    # path = r"D:/Applications/Steam/steamapps/common/Left 4 Dead 2/left4dead2/sound/music/gallery_music.mp3"
+    # path = r"D:/Applications/Steam/steamapps/component/Left 4 Dead 2/left4dead2/sound/music/gallery_music.mp3"
     # path = r"D:/13595/Music/周杰伦/周杰伦 - 暗号.mp3"
     path = r"D:\13595\Music\初音未来 - 甩葱歌.mp3"
     mp3 = MP3(path)

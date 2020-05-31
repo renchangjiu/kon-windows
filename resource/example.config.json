@@ -1,0 +1,12 @@
+{
+  "scannedPaths": [
+    {
+      "path": "/path1",
+      "checked": true
+    },
+    {
+      "path": "/path2",
+      "checked": false
+    }
+  ]
+}
