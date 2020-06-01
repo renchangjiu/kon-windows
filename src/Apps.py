@@ -18,6 +18,8 @@ class Apps(object):
     @staticmethod
     def check_app():
         """ 检查程序完整性 """
+        if not os.path.exists(Constant.data):
+            os.mkdir(Constant.data)
         db_file = Constant.data + "/data.db"
         if not os.path.exists(db_file):
             shutil.copyfile(Constant.res + "/example.data.db", db_file)
