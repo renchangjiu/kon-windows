@@ -9,4 +9,5 @@ resource/config/
 .svn/wc.db
 .svn/wc.db-journal
 
-data/
+data/data.db
+data/config.json
