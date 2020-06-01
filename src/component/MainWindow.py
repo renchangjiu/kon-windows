@@ -8,7 +8,8 @@ from PyQt5.QtGui import QPixmap, QFont, QIcon, QImage, QFontMetrics, QCursor, QC
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QListWidgetItem, QTableWidgetItem, \
     QAction, QMenu, QLabel, QWidgetAction, QHBoxLayout
 
-from src.component.Apps import Apps
+from src.Apps import Apps
+from src.component.Constant import Constant
 from src.entity.music_list import MusicList
 from src.service.LRCParser import LRC
 from src.service.MP3Parser import MP3
@@ -17,10 +18,10 @@ from src.service.music_list_service import MusicListService
 from src.service.music_service import MusicService
 from src.service.search_local_music import SearchLocalMusic
 from src.ui import add_music_list
-from src.ui.choose_music_dir import ChooseMusicDirPage
+from src.ui.ScannedPathDialog import ChooseMusicDirPage
+from src.ui.Toast import Toast
 from src.ui.play_list_page import PlayListPage
 from src.ui.style import Style
-from src.ui.toast import Toast
 from src.util import util
 
 
@@ -36,7 +37,7 @@ class MainWindow(QWidget, Ui_Form):
 
         self.music_list_service = MusicListService()
         self.music_service = MusicService()
-
+        self.config = Apps.config
         # 播放信息
         self.process = None
         # 音量
@@ -85,7 +86,7 @@ class MainWindow(QWidget, Ui_Form):
     def begin_search(self):
         print("搜索开始")
         self.label_search_gif = QLabel(self.navigation)
-        movie = QMovie(Apps.res_path + "/image/1.gif")
+        movie = QMovie(Constant.res + "/image/1.gif")
         self.label_search_gif.setMovie(movie)
         self.label_search_gif.setGeometry(160, 9, 16, 16)
         self.label_search_gif.show()
@@ -99,12 +100,9 @@ class MainWindow(QWidget, Ui_Form):
         self.label_search_state.setText("更新完成")
 
     def sub_thread(self, search_local_music):
-        paths = ChooseMusicDirPage.get_music_path()
-        temp = []
-        for path in paths:
-            if path[1] == "checked" and os.path.exists(path[0]):
-                temp.append(path[0])
-        search_local_music.search_in_path(temp)
+        scps = list(filter(lambda v: v.checked, self.config.scanned_paths))
+        paths = list(map(lambda v: v.path, scps))
+        search_local_music.search_in_path(paths)
 
     def init_data(self):
         self.navigation.setIconSize(QSize(18, 18))
@@ -112,7 +110,7 @@ class MainWindow(QWidget, Ui_Form):
         font.setPixelSize(13)
         local_item = QListWidgetItem(self.navigation)
         local_item.setData(Qt.UserRole, self.music_list_service.get_local_music())
-        local_item.setIcon(QIcon(Apps.res_path + "/image/歌单0.png"))
+        local_item.setIcon(QIcon(Constant.res + "/image/歌单0.png"))
         local_item.setText("本地音乐")
         local_item.setFont(font)
 
@@ -123,7 +121,7 @@ class MainWindow(QWidget, Ui_Form):
         item1.setFlags(Qt.NoItemFlags)
         self.navigation.addItem(item1)
         mls = list(filter(lambda ml: ml.id != MusicList.DEFAULT_ID, self.music_list_service.list_(MusicList())))
-        music_list_icon = QIcon(Apps.res_path + "/image/歌单1.png")
+        music_list_icon = QIcon(Constant.res + "/image/歌单1.png")
         for music_list in mls:
             item = QListWidgetItem()
             item.setIcon(music_list_icon)
@@ -262,9 +260,9 @@ class MainWindow(QWidget, Ui_Form):
             icon_label = QLabel()
             # 播放状态或暂停状态显示两种图标
             if self.state == self.playing_state:
-                icon_label.setPixmap(QPixmap(Apps.res_path + "/image/musics_play.png"))
+                icon_label.setPixmap(QPixmap(Constant.res + "/image/musics_play.png"))
             else:
-                icon_label.setPixmap(QPixmap(Apps.res_path + "/image/musics_pause.png"))
+                icon_label.setPixmap(QPixmap(Constant.res + "/image/musics_pause.png"))
             icon_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             # 区分歌单页面和本地音乐页面
             if self.stackedWidget_2.currentWidget() == self.music_list_detail:
@@ -326,7 +324,7 @@ class MainWindow(QWidget, Ui_Form):
             music = self.cur_play_list.get_current_music()
             image_data = MP3(music.path).image
             if image_data == b"":
-                image = QPixmap(Apps.res_path + "/image/default_music_image.png")
+                image = QPixmap(Constant.res + "/image/default_music_image.png")
             else:
                 image = QPixmap.fromImage(QImage.fromData(image_data))
             max_width = 110
@@ -512,7 +510,7 @@ class MainWindow(QWidget, Ui_Form):
 
     def init_ui(self):
         self.setWindowIconText("qaq")
-        self.setWindowIcon(QIcon(Apps.res_path + "/image/app-icon.png"))
+        self.setWindowIcon(QIcon(Constant.res + "/image/app-icon.png"))
         # font = QFont("Consolas", 10, 50)
         # self.musics.setFont(font)
         self.setWindowFlag(Qt.FramelessWindowHint)
@@ -527,7 +525,7 @@ class MainWindow(QWidget, Ui_Form):
         self.le_search.setStyleSheet("border:none;border-radius:10px;padding:2px 4px; background-color:#a82828;" +
                                      "color:#cccccc;selection-color:yellow;selection-background-color: blue;")
         self.search_act = QAction(self)
-        self.search_act.setIcon(QIcon(Apps.res_path + "/image/搜索3.png"))
+        self.search_act.setIcon(QIcon(Constant.res + "/image/搜索3.png"))
         self.le_search.addAction(self.search_act, QLineEdit.TrailingPosition)
 
         # ------------------ 右上歌单相关信息------------------ #
@@ -536,7 +534,7 @@ class MainWindow(QWidget, Ui_Form):
         self.music_list_name.setFont(mln_font)
         self.music_count.setStyleSheet("color:#999999")
         self.music_list_play_count.setStyleSheet("color:#999999")
-        self.music_list_image.setPixmap(QPixmap(Apps.res_path + "/image/music_list/rikka.png"))
+        self.music_list_image.setPixmap(QPixmap(Constant.res + "/image/music_list/rikka.png"))
         self.widget_2.setStyleSheet("background-color:#fafafa;border:none")
         self.label_4.setStyleSheet("QLabel{background-color:#c62f2f; color:white;border:1px solid red}")
         # 歌单音乐列表上方搜索框
@@ -545,7 +543,7 @@ class MainWindow(QWidget, Ui_Form):
             "color:#cccccc;selection-color:yellow;selection-background-color: blue;")
         self.music_list_search.setPlaceholderText("搜索歌单音乐")
         self.search_act = QAction(self)
-        self.search_act.setIcon(QIcon(Apps.res_path + "/image/搜索3.png"))
+        self.search_act.setIcon(QIcon(Constant.res + "/image/搜索3.png"))
         self.music_list_search.addAction(self.search_act, QLineEdit.TrailingPosition)
         self.main_stacked_widget.setStyleSheet("border-bottom: 1px solid #E1E1E2")
 
@@ -628,7 +626,7 @@ class MainWindow(QWidget, Ui_Form):
             "color:#000000;selection-color:yellow;selection-background-color: blue;}")
         self.le_search_local_music.setPlaceholderText("搜索本地音乐")
         self.search_act_2 = QAction(self)
-        self.search_act_2.setIcon(QIcon(Apps.res_path + "/image/搜索3.png"))
+        self.search_act_2.setIcon(QIcon(Constant.res + "/image/搜索3.png"))
         self.le_search_local_music.addAction(self.search_act_2, QLineEdit.TrailingPosition)
         self.init_button()
 
@@ -1003,7 +1001,7 @@ class MainWindow(QWidget, Ui_Form):
     def play(self):
         music = self.cur_play_list.get_current_music()
         self.process = QProcess(self)
-        command = Apps.res_path + "/lib/mplayer.exe -slave -quiet -volume %d \"%s\"" % (self.volume, music.path)
+        command = Constant.res + "/lib/mplayer.exe -slave -quiet -volume %d \"%s\"" % (self.volume, music.path)
         self.process.start(command)
         # 连接信号
         self.process.readyReadStandardOutput.connect(self.show_play_info)
@@ -1015,7 +1013,7 @@ class MainWindow(QWidget, Ui_Form):
         position_regex = "ANS_TIME_POSITION=(.*?)\\\\r"
         position_pattern = re.compile(position_regex)
         # 歌词
-        lrc = LRC(Apps.res_path + "/周杰伦 - 星晴.lrc")
+        lrc = LRC(Constant.res + "/周杰伦 - 星晴.lrc")
 
         while self.process.canReadLine():
             output = str(self.process.readLine())

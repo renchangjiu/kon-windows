@@ -63,6 +63,9 @@ class SearchLocalMusic(QObject):
     # 递归遍历path下的文件, 把符合规则的文件路径加入到paths
     def __loop_all(path: str, paths: set):
         try:
+            if not os.path.exists(path):
+                print(path + " 不存在")
+                return paths
             listdir = os.listdir(path)
             for f in listdir:
                 if not path.endswith("/"):

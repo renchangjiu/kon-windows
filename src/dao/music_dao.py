@@ -1,13 +1,13 @@
 import sqlite3
 
 from src.entity.music import Music
-from src.component.Apps import Apps
+from src.component.Constant import Constant
 from src.util.string_util import StringUtils
 
 
 class MusicDao:
     def __init__(self):
-        self.database = Apps.data_path + "/data.db"
+        self.database = Constant.data + "/data.db"
         self.conn = sqlite3.connect(self.database)
 
     def list_by_mid(self, mid: int) -> list:

@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QListWidget, QSlider, QWidget, QLabel, QPushButton
-from src.component.Apps import Apps
+from src.component.Constant import Constant
 
 
 class Style(object):
@@ -11,7 +11,7 @@ class Style(object):
                           btn_window_max: QPushButton,
                           btn_window_min: QPushButton, btn_set: QPushButton):
         # ------------------ header------------------ #
-        qss_path = Apps.res_path + "/qss/header.qss"
+        qss_path = Constant.res + "/qss/header.qss"
         qss = open(qss_path, "r", encoding="utf-8")
         header.setStyleSheet(qss.read())
         qss.close()

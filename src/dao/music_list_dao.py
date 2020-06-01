@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 
-from src.component.Apps import Apps
+from src.component.Constant import Constant
 from src.entity.music_list import MusicList
 from src.util.string_util import StringUtils
 
@@ -9,7 +9,7 @@ from src.util.string_util import StringUtils
 class MusicListDao:
     def __init__(self):
         # 连接到SQLite数据库, 数据库文件是test.db, 如果文件不存在，会自动在当前目录创建
-        self.database = Apps.data_path + "/data.db"
+        self.database = Constant.data + "/data.db"
         self.conn = sqlite3.connect(self.database)
 
     def list_(self, ml: MusicList) -> list:
