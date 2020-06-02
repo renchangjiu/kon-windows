@@ -1,6 +1,5 @@
 import os
 import re
-import threading
 
 from PyQt5.QtCore import Qt, QTimer, QProcess, QEvent, QSize, QModelIndex, QObject
 from PyQt5.QtGui import QPixmap, QFont, QIcon, QImage, QFontMetrics, QCursor, QCloseEvent, QMouseEvent, QMovie, \
@@ -11,14 +10,12 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QListWidgetItem, QT
 from src.Apps import Apps
 from src.component.Constant import Constant
 from src.component.ScanPaths import ScanPaths
+from src.component.ScannedPathsDialog import ScannedPathsDialog
 from src.model.MusicList import MusicList
 from src.service.LRCParser import LRC
 from src.service.MP3Parser import MP3
-from src.ui.MainWidgetUI import Ui_Form
-from src.service.MusicListService import MusicListService
-from src.service.MusicService import MusicService
 from src.ui import add_music_list
-from src.component.ScannedPathDialog import ChooseMusicDirPage
+from src.ui.MainWidgetUI import Ui_Form
 from src.ui.Toast import Toast
 from src.ui.play_list_page import PlayListPage
 from src.ui.style import Style
@@ -35,8 +32,8 @@ class MainWindow(QWidget, Ui_Form):
         QWidget.__init__(self)
         Ui_Form.__init__(self)
 
-        self.music_list_service = MusicListService()
-        self.music_service = MusicService()
+        self.music_service = Apps.music_service
+        self.music_list_service = Apps.music_list_service
         self.config = Apps.config
         # 播放信息
         self.process = None
@@ -77,32 +74,24 @@ class MainWindow(QWidget, Ui_Form):
         self.research_local_music()
 
     def research_local_music(self):
-        search_local_music = ScanPaths()
-        search_local_music.begin_search.connect(self.begin_search)
-        search_local_music.end_search.connect(self.end_search)
-        thread = threading.Thread(target=lambda: self.sub_thread(search_local_music))
-        thread.start()
+        scan = ScanPaths()
+        scan.scan_state_change.connect(self.on_scan)
+        scan.start()
 
-    def begin_search(self):
-        print("搜索开始")
-        self.label_search_gif = QLabel(self.navigation)
-        movie = QMovie(Constant.res + "/image/1.gif")
-        self.label_search_gif.setMovie(movie)
-        self.label_search_gif.setGeometry(160, 9, 16, 16)
-        self.label_search_gif.show()
-        movie.start()
-        movie.setSpeed(90)
-        self.label_search_state.setText("正在更新本地音乐列表...")
-
-    def end_search(self):
-        print("搜索结束")
-        self.label_search_gif.hide()
-        self.label_search_state.setText("更新完成")
-
-    def sub_thread(self, search_local_music):
-        scps = list(filter(lambda v: v.checked, self.config.scanned_paths))
-        paths = list(map(lambda v: v.path, scps))
-        search_local_music.search_in_path(paths)
+    def on_scan(self, state: int):
+        if state == 1:
+            self.label_search_gif = QLabel(self.navigation)
+            movie = QMovie(Constant.res + "/image/1.gif")
+            self.label_search_gif.setMovie(movie)
+            self.label_search_gif.setGeometry(160, 9, 16, 16)
+            self.label_search_gif.show()
+            movie.start()
+            movie.setSpeed(90)
+            self.label_search_state.setText("正在更新本地音乐列表...")
+        else:
+            self.label_search_gif.hide()
+            self.label_search_state.setText("更新完成")
+            self.reload_local_musics()
 
     def init_data(self):
         self.navigation.setIconSize(QSize(18, 18))
@@ -389,7 +378,7 @@ class MainWindow(QWidget, Ui_Form):
 
         # 本地音乐页面
         self.le_search_local_music.textChanged.connect(self.on_search)
-        self.btn_choose_dir.clicked.connect(self.show_choose_music_dir_page)
+        self.btn_choose_dir.clicked.connect(lambda: ScannedPathsDialog(self).exec())
         self.tb_local_music.doubleClicked.connect(self.on_tb_double_clicked)
         self.tb_local_music.customContextMenuRequested.connect(self.on_tb_local_music_right_click)  # 右键菜单
 
@@ -921,11 +910,6 @@ class MainWindow(QWidget, Ui_Form):
         # 同步更新播放列表页的数据
         if self.cur_play_list is not None:
             self.play_list_page.show_data(self.cur_play_list)
-
-    def show_choose_music_dir_page(self):
-        self.choose_music_dir_page = ChooseMusicDirPage(self)
-        self.choose_music_dir_page.local_musics_change.connect(self.reload_local_musics)
-        self.choose_music_dir_page.exec()
 
     # 当改变了本地音乐的搜索路径, 重新读取本地音乐文件
     def reload_local_musics(self):

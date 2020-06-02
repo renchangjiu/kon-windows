@@ -24,14 +24,7 @@ class Config(object):
         obj = {
             "scannedPaths": ScannedPath.stringify(self.scanned_paths)
         }
-        json_str = json.dumps(obj)
+        json_str = json.dumps(obj, ensure_ascii=False)
         file = open(self.__config_path, "w", encoding="utf-8")
         file.write(json_str)
         file.close()
-
-
-if __name__ == "__main__":
-    config = Config()
-    config.scanned_paths.append(ScannedPath("/path3", True))
-    config.save()
-    pass

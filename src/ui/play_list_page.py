@@ -1,14 +1,13 @@
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QEvent, QModelIndex
 from PyQt5.QtGui import QPixmap, QColor, QIcon, QCursor, QPainter, QPen
 from PyQt5.QtWidgets import QWidget, QTableWidgetItem, \
     QAction, QMenu, QLabel, QWidgetAction, QHBoxLayout
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-
+from src.Apps import Apps
 from src.model.MusicList import MusicList
-from src.util import util
-from src.service.MusicListService import MusicListService
 from src.ui.TableWidget import TableWidget
+from src.util import util
 
 
 class Ui_Form(object):
@@ -129,7 +128,7 @@ class PlayListPage(QWidget, Ui_Form):
         Ui_Form.__init__(self)
         self.setupUi(self)
         self.setParent(parent)
-        self.music_list_service = MusicListService()
+        self.music_list_service = Apps.music_list_service
         self.__init_ui()
         self.__init_table_widget_ui()
         self.__set_table_widget_width()

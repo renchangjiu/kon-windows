@@ -4,16 +4,21 @@ import shutil
 from src.component.Constant import Constant
 from src.component.config.Config import Config
 from src.model.MusicList import MusicList
+from src.service.MusicListService import MusicListService
 from src.service.MusicService import MusicService
 
 
 class Apps(object):
     """ 维护应用运行时的复杂对象 """
     config = Config()
+    music_service = MusicService()
+    music_list_service = MusicListService()
 
     @classmethod
     def init(cls):
         cls.config.init()
+        cls.music_service.init()
+        cls.music_list_service.init()
 
     @staticmethod
     def check_app():
@@ -24,6 +29,7 @@ class Apps(object):
         if not os.path.exists(db_file):
             shutil.copyfile(Constant.res + "/example.data.db", db_file)
             music_service = MusicService()
+            music_service.init()
             path = Constant.res + "/放課後ティータイム - Listen!!.mp3"
             music = music_service.gen_music_by_path(path, MusicList.DEFAULT_ID)
             music_service.insert(music)

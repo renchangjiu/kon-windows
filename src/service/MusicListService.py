@@ -9,8 +9,12 @@ from src.component.PlayList import PlayList
 class MusicListService:
     def __init__(self) -> None:
         super().__init__()
-        self.music_list_dao = MusicListDao()
+        self.music_dao = None
+        self.music_list_dao = None
+
+    def init(self):
         self.music_dao = MusicDao()
+        self.music_list_dao = MusicListDao()
 
     @staticmethod
     def copy(source: MusicList) -> MusicList:

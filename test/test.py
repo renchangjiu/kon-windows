@@ -3,6 +3,9 @@ import sqlite3
 
 
 # 统计代码行数, 包括注释及空行
+from src.component.Player import Player
+
+
 def count_code_lines():
     root = os.path.abspath(os.pardir)
     dirs = [root]
@@ -58,7 +61,11 @@ def example():
     conn.close()
 
 
+
+
+
 if __name__ == "__main__":
     print()
-    count_code_lines()
+    Player().volume()
+    # count_code_lines()
     # select()

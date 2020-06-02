@@ -8,7 +8,7 @@ from src.util.string_util import StringUtils
 class MusicDao:
     def __init__(self):
         self.database = Constant.data + "/data.db"
-        self.conn = sqlite3.connect(self.database)
+        self.conn = sqlite3.connect(self.database, check_same_thread=False)
 
     def list_by_mid(self, mid: int) -> list:
         """

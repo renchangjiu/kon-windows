@@ -9,13 +9,17 @@ from src.service.MP3Parser import MP3
 
 class MusicService:
     def __init__(self) -> None:
+        super().__init__()
+        self.music_dao = None
+        self.music_list_dao = None
+
+    def init(self):
         self.music_dao = MusicDao()
         self.music_list_dao = MusicListDao()
 
     @staticmethod
     def gen_music_by_path(path: str, mid: int):
-        """
-        根据path获得其时长及作者等信息, 生成 Music 对象
+        """ 根据path获得其时长及作者等信息, 生成 Music 对象
         :param path: 文件实际路径
         :param mid: 所属歌单ID
         :return: Music
@@ -58,7 +62,7 @@ class MusicService:
         self.music_dao.insert(music_)
 
     def batch_insert(self, musics: list):
-        """ 重复数据不会被插入(重复指 path 及 mid 相同) """
+        """ 重复数据不会被插入(重复指 path 及 mid 同时相同) """
         total_list = self.list_(Music())
         data = []
         for music in musics:
@@ -88,7 +92,6 @@ class MusicService:
     def delete_by_mid(self, mid: int):
         """ 根据歌单ID删除 """
         self.music_dao.delete_by_mid(mid)
-
 
     def index_of(self, id_: int, music_list: MusicList) -> int:
         """ 判断某歌曲是否属于某歌单, 是则返回该歌曲在该歌单中的索引, 否则返回-1 """

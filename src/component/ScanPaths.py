@@ -1,87 +1,59 @@
 import os
+import threading
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import QObject
 
+from src.Apps import Apps
 from src.model.Music import Music
 from src.model.MusicList import MusicList
 from src.service.MP3Parser import MP3
-from src.service.MusicService import MusicService
 
 
-class ScanPaths(QObject):
-    begin_search = QtCore.pyqtSignal()
-    end_search = QtCore.pyqtSignal()
+class ScanPaths(QObject, threading.Thread):
+    """ 异步扫描指定目录(指配置文件)下的所有音乐文件, 并写入数据库 """
+
+    # 1/2, 1: 扫描开始, 2: 扫描结束
+    scan_state_change = QtCore.pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
 
+    def run(self) -> None:
+        self.scan_state_change.emit(1)
+        search_paths = list(map(lambda v: v.path, filter(lambda v: v.checked, Apps.config.scanned_paths)))
+        music_files = ScanPaths.__find_music_files(search_paths)
+        musics = ScanPaths.__get_mp3_info(music_files)
+        Apps.music_service.batch_insert(musics)
+        self.scan_state_change.emit(2)
+
     @staticmethod
-    # 全盘搜索
-    def search():
-        # 以 .mp3结尾, 大于100kb的文件
-        paths = set()
-        # 合法的mp3文件
+    def __find_music_files(search_paths: list) -> list:
+        files = list()
+        while len(search_paths) > 0:
+            size = len(search_paths)
+            for i in range(size):
+                pop = search_paths.pop()
+                if not os.path.exists(pop):
+                    continue
+                listdir = list(map(lambda v: os.path.join(pop, v), ScanPaths.__listdir(pop)))
+                for ld in listdir:
+                    if os.path.isdir(ld):
+                        search_paths.append(ld)
+                    else:
+                        if ScanPaths.__is_music_file(ld):
+                            files.append(ld)
+        return files
+
+    @staticmethod
+    def __is_music_file(path):
+        if (path.endswith("mp3") or path.endswith("MP3")) and os.path.getsize(path) > 100 * 1024:
+            return True
+        return False
+
+    @staticmethod
+    def __get_mp3_info(paths: list):
         musics = []
-        pans = ScanPaths.__get_exist_pan()
-        for pan in pans:
-            paths = ScanPaths.__loop_all(pan, paths)
-        musics = ScanPaths.__get_mp3_info(paths, musics)
-        print(len(musics), "  ", musics)
-        ScanPaths.__to_database(musics)
-
-    def search_in_path(self, search_paths: list):
-        self.begin_search.emit()
-        # 以 .mp3结尾, 大于100kb的文件
-        paths = set()
-        # 合法的mp3文件
-        musics = []
-        for search_path in search_paths:
-            paths = ScanPaths.__loop_all(search_path, paths)
-        musics = ScanPaths.__get_mp3_info(list(paths), musics)
-        self.__to_database(musics)
-        self.end_search.emit()
-
-    @staticmethod
-    # 把搜索结果存入数据库
-    def __to_database(musics: list):
-        music_service = MusicService()
-        music_service.batch_insert(musics)
-
-    @staticmethod
-    def __get_exist_pan():
-        pan_list = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        exist_pan = []
-        for pan in pan_list:
-            if os.path.isdir(pan + ":/"):
-                exist_pan.append(pan + ":/")
-        return exist_pan
-
-    @staticmethod
-    # 递归遍历path下的文件, 把符合规则的文件路径加入到paths
-    def __loop_all(path: str, paths: set):
-        try:
-            if not os.path.exists(path):
-                print(path + " 不存在")
-                return paths
-            listdir = os.listdir(path)
-            for f in listdir:
-                if not path.endswith("/"):
-                    p = path + "/" + f
-                else:
-                    p = path + f
-                if (f.endswith("mp3") or f.endswith("MP3")) and os.path.getsize(p) > 100 * 1024:
-                    paths.add(p)
-                if os.path.isdir(p):
-                    ScanPaths.__loop_all(p, paths)
-            return paths
-        except PermissionError as e:
-            pass
-
-    @staticmethod
-    # paths: 文件路径列表
-    # musics: Music列表
-    def __get_mp3_info(paths: list, musics: list):
         for path in paths:
             try:
                 mp3 = MP3(path)
@@ -120,6 +92,10 @@ class ScanPaths(QObject):
                 pass
         return musics
 
-
-if __name__ == "__main__":
-    pass
+    @staticmethod
+    def __listdir(path):
+        try:
+            return os.listdir(path)
+        except PermissionError as e:
+            print(e.strerror)
+            return []
