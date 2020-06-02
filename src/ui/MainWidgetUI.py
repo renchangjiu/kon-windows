@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\13595\PycharmProjects\music-player\main_widget.ui'
+# Form implementation generated from reading ui file 'C:\Users\13595\PycharmProjects\music-player\MainWidgetUI.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.2
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from src.service.tablewidget import TableWidget
+from src.ui.TableWidget import TableWidget
 
 
 class Ui_Form(object):

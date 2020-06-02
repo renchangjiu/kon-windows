@@ -1,4 +1,4 @@
-from src.entity.music import Music
+from src.model.Music import Music
 
 
 class MusicList:

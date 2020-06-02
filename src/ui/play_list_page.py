@@ -5,10 +5,10 @@ from PyQt5.QtWidgets import QWidget, QTableWidgetItem, \
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from src.entity.music_list import MusicList
+from src.model.MusicList import MusicList
 from src.util import util
-from src.service.music_list_service import MusicListService
-from src.service.tablewidget import TableWidget
+from src.service.MusicListService import MusicListService
+from src.ui.TableWidget import TableWidget
 
 
 class Ui_Form(object):

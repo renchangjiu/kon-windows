@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 
 from src.component.Constant import Constant
-from src.entity.music_list import MusicList
+from src.model.MusicList import MusicList
 from src.util.string_util import StringUtils
 
 

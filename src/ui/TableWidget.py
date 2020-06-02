@@ -1,15 +1,12 @@
-import math
-
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QTimer, QProcess, QEvent, QSize, QPointF
-from PyQt5.QtGui import QPixmap, QBrush, QFont, QColor, QIcon, QImage, QFontMetrics, QCursor, QLinearGradient, \
-    QGradient, QPainter, QPen, QPalette
-from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QAbstractItemView, QListWidgetItem, QTableWidgetItem, \
-    QAction, QMenu, QLabel, QTableWidget, QHeaderView
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QBrush, QColor, QPalette
+from PyQt5.QtWidgets import QAbstractItemView, QTableWidget
 
 
-# 重载QTableWidget, 实现隔行变色 & 鼠标滑过变色
 class TableWidget(QTableWidget):
+    """ 重载QTableWidget, 实现隔行变色 & 鼠标滑过变色 """
+
     def __init__(self, parent):
         super().__init__()
         self.setParent(parent)

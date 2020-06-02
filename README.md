@@ -2,5 +2,5 @@
 
 现处于1.0版未完成阶段
 
-示例:  
-![example1](https://image.muzhez.com/links/20191104/1191239668058816512.png)
+主页面:  
+![example](./resource/image/example.png)

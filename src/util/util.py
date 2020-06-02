@@ -1,7 +1,7 @@
 from PyQt5.QtGui import QFontMetrics, QFont
 
-from src.entity.music import Music
-from src.entity.music_list import MusicList
+from src.model.Music import Music
+from src.model.MusicList import MusicList
 
 
 # 把秒级时间格式化为mm:ss形式

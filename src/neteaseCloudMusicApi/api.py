@@ -2,7 +2,7 @@ import json
 
 import requests
 
-from src.entity.music import Music
+from src.model.Music import Music
 from src.neteaseCloudMusicApi import encrypt
 
 

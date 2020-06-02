@@ -1,7 +1,7 @@
 import sqlite3
 
-from src.entity.music import Music
 from src.component.Constant import Constant
+from src.model.Music import Music
 from src.util.string_util import StringUtils
 
 

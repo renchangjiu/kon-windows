@@ -3,14 +3,13 @@ import os
 from PyQt5 import QtCore
 from PyQt5.QtCore import QObject
 
-from src.entity.music_list import MusicList
+from src.model.Music import Music
+from src.model.MusicList import MusicList
 from src.service.MP3Parser import MP3
-
-from src.entity.music import Music
-from src.service.music_service import MusicService
+from src.service.MusicService import MusicService
 
 
-class SearchLocalMusic(QObject):
+class ScanPaths(QObject):
     begin_search = QtCore.pyqtSignal()
     end_search = QtCore.pyqtSignal()
 
@@ -19,18 +18,17 @@ class SearchLocalMusic(QObject):
 
     @staticmethod
     # 全盘搜索
-    @DeprecationWarning
     def search():
         # 以 .mp3结尾, 大于100kb的文件
         paths = set()
         # 合法的mp3文件
         musics = []
-        pans = SearchLocalMusic.__get_exist_pan()
+        pans = ScanPaths.__get_exist_pan()
         for pan in pans:
-            paths = SearchLocalMusic.__loop_all(pan, paths)
-        musics = SearchLocalMusic.__get_mp3_info(paths, musics)
+            paths = ScanPaths.__loop_all(pan, paths)
+        musics = ScanPaths.__get_mp3_info(paths, musics)
         print(len(musics), "  ", musics)
-        SearchLocalMusic.__to_database(musics)
+        ScanPaths.__to_database(musics)
 
     def search_in_path(self, search_paths: list):
         self.begin_search.emit()
@@ -39,8 +37,8 @@ class SearchLocalMusic(QObject):
         # 合法的mp3文件
         musics = []
         for search_path in search_paths:
-            paths = SearchLocalMusic.__loop_all(search_path, paths)
-        musics = SearchLocalMusic.__get_mp3_info(list(paths), musics)
+            paths = ScanPaths.__loop_all(search_path, paths)
+        musics = ScanPaths.__get_mp3_info(list(paths), musics)
         self.__to_database(musics)
         self.end_search.emit()
 
@@ -75,7 +73,7 @@ class SearchLocalMusic(QObject):
                 if (f.endswith("mp3") or f.endswith("MP3")) and os.path.getsize(p) > 100 * 1024:
                     paths.add(p)
                 if os.path.isdir(p):
-                    SearchLocalMusic.__loop_all(p, paths)
+                    ScanPaths.__loop_all(p, paths)
             return paths
         except PermissionError as e:
             pass

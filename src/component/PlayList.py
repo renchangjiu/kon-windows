@@ -1,7 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtCore import QObject
 
-from src.entity.music import Music
+from src.model.Music import Music
 
 
 class PlayList(QObject):

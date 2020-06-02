@@ -1,10 +1,9 @@
 import time
 
-from src.dao.music_dao import MusicDao
-from src.dao.music_list_dao import MusicListDao
-from src.entity.music import Music
-from src.entity.music_list import MusicList
-from src.service.play_list import PlayList
+from src.dao.MusicDao import MusicDao
+from src.dao.MusicListDao import MusicListDao
+from src.model.MusicList import MusicList
+from src.component.PlayList import PlayList
 
 
 class MusicListService:

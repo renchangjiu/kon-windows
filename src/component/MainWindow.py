@@ -10,15 +10,15 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QListWidgetItem, QT
 
 from src.Apps import Apps
 from src.component.Constant import Constant
-from src.entity.music_list import MusicList
+from src.component.ScanPaths import ScanPaths
+from src.model.MusicList import MusicList
 from src.service.LRCParser import LRC
 from src.service.MP3Parser import MP3
-from src.service.main_widget import Ui_Form
-from src.service.music_list_service import MusicListService
-from src.service.music_service import MusicService
-from src.service.search_local_music import SearchLocalMusic
+from src.ui.MainWidgetUI import Ui_Form
+from src.service.MusicListService import MusicListService
+from src.service.MusicService import MusicService
 from src.ui import add_music_list
-from src.ui.ScannedPathDialog import ChooseMusicDirPage
+from src.component.ScannedPathDialog import ChooseMusicDirPage
 from src.ui.Toast import Toast
 from src.ui.play_list_page import PlayListPage
 from src.ui.style import Style
@@ -77,7 +77,7 @@ class MainWindow(QWidget, Ui_Form):
         self.research_local_music()
 
     def research_local_music(self):
-        search_local_music = SearchLocalMusic()
+        search_local_music = ScanPaths()
         search_local_music.begin_search.connect(self.begin_search)
         search_local_music.end_search.connect(self.end_search)
         thread = threading.Thread(target=lambda: self.sub_thread(search_local_music))

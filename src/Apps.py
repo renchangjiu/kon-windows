@@ -3,8 +3,8 @@ import shutil
 
 from src.component.Constant import Constant
 from src.component.config.Config import Config
-from src.entity.music_list import MusicList
-from src.service.music_service import MusicService
+from src.model.MusicList import MusicList
+from src.service.MusicService import MusicService
 
 
 class Apps(object):

@@ -1,4 +1,3 @@
-import configparser
 import os
 import threading
 
@@ -7,9 +6,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QCheckBox, QFileDialog
 
 from src.Apps import Apps
-from src.component.Constant import Constant
 from src.component.config.ScannedPath import ScannedPath
-from src.service.search_local_music import SearchLocalMusic
+from src.component.ScanPaths import ScanPaths
 from src.ui.ScannedPathDialogUI import Ui_Dialog
 
 
@@ -104,7 +102,7 @@ class ChooseMusicDirPage(QtWidgets.QDialog, Ui_Dialog):
         # 如果path有变化, 则重新搜索新的path
         if len(change_paths) != 0:
             # print(cur_paths)
-            search_local_music = SearchLocalMusic()
+            search_local_music = ScanPaths()
             search_local_music.begin_search.connect(self.begin)
             search_local_music.end_search.connect(self.end)
             thread = threading.Thread(target=lambda: self.sub_thread(search_local_music, cur_paths))

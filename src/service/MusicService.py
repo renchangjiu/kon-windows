@@ -1,8 +1,8 @@
 import os
-from src.dao.music_dao import MusicDao
-from src.dao.music_list_dao import MusicListDao
-from src.entity.music import Music
-from src.entity.music_list import MusicList
+from src.dao.MusicDao import MusicDao
+from src.dao.MusicListDao import MusicListDao
+from src.model.Music import Music
+from src.model.MusicList import MusicList
 from src.util import util
 from src.service.MP3Parser import MP3
 
