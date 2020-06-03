@@ -71,12 +71,7 @@ class MainWindow(QWidget, Ui_Form):
         self.min = self.scrollArea.verticalScrollBar().minimum()
 
         # 重新搜索本地音乐
-        self.research_local_music()
-
-    def research_local_music(self):
-        scan = ScanPaths()
-        scan.scan_state_change.connect(self.on_scan)
-        scan.start()
+        ScanPaths.scan(self.on_scan)
 
     def on_scan(self, state: int):
         if state == 1:

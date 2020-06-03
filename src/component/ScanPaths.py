@@ -19,6 +19,12 @@ class ScanPaths(QObject, threading.Thread):
     def __init__(self):
         super().__init__()
 
+    @staticmethod
+    def scan(slot_func):
+        scan = ScanPaths()
+        scan.scan_state_change.connect(slot_func)
+        scan.start()
+
     def run(self) -> None:
         self.scan_state_change.emit(1)
         search_paths = list(map(lambda v: v.path, filter(lambda v: v.checked, Apps.config.scanned_paths)))

@@ -38,7 +38,7 @@ class MusicService:
     def list_(self, m: Music) -> tuple:
         return tuple(self.music_dao.list_(m))
 
-    def list_by_mid(self, mid: int) -> tuple:
+    def list4mid(self, mid: int) -> tuple:
         """
         查询该歌单所属的所有歌曲
         :param mid: 歌单id
@@ -109,7 +109,7 @@ class MusicService:
         """ 在该歌单内, 根据title, artist, album搜索, 返回搜索结果集. """
         keyword = keyword.lower()
         ret = self.music_list_dao.get_by_id(mid)
-        musics = self.list_by_mid(mid)
+        musics = self.list4mid(mid)
         ret.musics = []
         for m in musics:
             title = m.title.lower()

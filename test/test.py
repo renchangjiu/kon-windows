@@ -61,11 +61,13 @@ def example():
     conn.close()
 
 
-
+def xx():
+    pass
 
 
 if __name__ == "__main__":
     print()
+    type1 = type(xx)
     Player().volume()
     # count_code_lines()
     # select()

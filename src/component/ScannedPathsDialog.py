@@ -49,13 +49,6 @@ class ScannedPathsDialog(QtWidgets.QDialog, Ui_Dialog):
             ScannedPath.add(ScannedPath(path, True), self.scanned_paths)
             self.init_data()
 
-    # 判断要添加的path是否已经存在, 已存在则返回其check状态("checked" or "unchecked"), 否则返回""
-    def in_paths(self, path):
-        for p in self.pre_paths:
-            if path == p[0]:
-                return p[1]
-        return ""
-
     def on_confirm(self):
         count = self.verticalLayout.count()
         self.scanned_paths = []
@@ -70,10 +63,8 @@ class ScannedPathsDialog(QtWidgets.QDialog, Ui_Dialog):
         Apps.config.save()
 
         # 判断是否需要重新扫描
-        if len(new.union(old)) != len(new) and len(new.union(old)) != len(old):
-            scan = ScanPaths()
-            scan.scan_state_change.connect(self.on_scan)
-            scan.start()
+        if len(new.union(old)) != len(new) or len(new.union(old)) != len(old):
+            ScanPaths.scan(self.on_scan)
         self.close()
 
     def on_scan(self, state: int):
