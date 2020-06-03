@@ -27,7 +27,7 @@ class Player(QObject):
 
     def prepare(self, path: str):
         self.__path = path
-        self.state = self.state_prepared
+        self.state = self.state_stop
 
     def start(self):
         """ 开始或继续播放。如果以前已暂停播放，则将从暂停的位置继续播放。如果播放已停止或之前从未开始过，则播放将从头开始。"""
