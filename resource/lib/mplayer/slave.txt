@@ -112,7 +112,7 @@ edl_loadfile <filename>
     Load new EDL file.
 
 edl_mark
-    Write the current position into the EDL file.
+    将当前位置写入EDL文件.
 
 frame_drop [value]
     Toggle/set frame dropping mode.
@@ -127,19 +127,19 @@ get_audio_samples
     Print out the audio frequency and number of channels of the current file.
 
 get_file_name
-    Print out the name of the current file.
+    打印出当前文件的名称。
 
 get_meta_album
-    Print out the 'Album' metadata of the current file.
+    打印出当前文件的 “album” 元数据。
 
 get_meta_artist
-    Print out the 'Artist' metadata of the current file.
+    打印出当前文件的 “artist” 元数据。
 
 get_meta_comment
-    Print out the 'Comment' metadata of the current file.
+    打印当前文件的 “Comment” 元数据。
 
 get_meta_genre
-    Print out the 'Genre' metadata of the current file.
+    打印出当前文件的 “Genre” 元数据。
 
 get_meta_title
     Print out the 'Title' metadata of the current file.
