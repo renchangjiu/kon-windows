@@ -1,7 +1,7 @@
 SLAVE MODE PROTOCOL
 -------------------
 
--slave 选项打开从属模式，在该模式下MPlayer用作其他程序的后端。 MPlayer不会拦截键盘事件，而是从stdin读取由换行符（\ n）分隔的命令。
+-slave 选项打开从属模式，在该模式下MPlayer用作其他程序的后端。 MPlayer不会拦截键盘事件，而是从stdin读取由换行符（\n）分隔的命令。
 
 要手动尝试从模式，请运行
 

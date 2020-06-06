@@ -1,26 +1,31 @@
-import sys, time
-import threading
-import unittest
-from datetime import datetime
+import time
 
 from src.component.Constant import Constant
 from src.component.Player import Player
+from test import Test
 
 
-class MyTestCase(unittest.TestCase):
+class TestPlayer(object):
     def test_player(self):
-        Constant.res = "D:/su/GitHub/kon-windows/src"
+        self.flag = True
         player = Player()
-        player.prepare("D:/su/music/洛天依 乐正绫 - 灼之花.mp3").start()
-        threading.Thread(target=self.sub_thread).start()
+        player.prepare(Constant.res + "/放課後ティータイム - Listen!!.mp3").start()
+        # threading.Thread(target=self.sub_thread).start()
         time.sleep(5)
-        pass
+        player.position()
+        # player.load("C:/Users/su/Music/洛天依 - 棠梨煎雪.mp3")
+        # player.prepare("C:/Users/su/Music/洛天依 - 棠梨煎雪.mp3").start()
+        time.sleep(10)
+        # self.flag = False
+        player.stop()
 
     def sub_thread(self):
-        while True:
-            print(datetime.now())
+        while self.flag:
+            pass
+            # print(datetime.now())
         pass
 
 
 if __name__ == '__main__':
-    unittest.main()
+    Test.init()
+    TestPlayer().test_player()

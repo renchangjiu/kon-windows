@@ -9,9 +9,8 @@ class Player(QObject):
     state_playing = 2
     state_paused = 3
 
-    def __init__(self) -> None:
+    def __init__(self,) -> None:
         super().__init__()
-
         # 音量
         self.__volume = 50
 
@@ -26,6 +25,7 @@ class Player(QObject):
 
         # 负责操作 mplayer
         self.__process = QProcess(self)
+        # self.__process = None
 
         # 播放状态
         self.__state = self.state_idle
@@ -63,11 +63,18 @@ class Player(QObject):
         self.__process.kill()
         self.__state = self.state_idle
 
+    def load(self, path: str):
+        self.__process.write(b"loadfile %s 0\n" % path.encode())
+
     def read_standard_output(self):
-        pass
+        while self.__process.canReadLine():
+            line = self.__process.readLine()
+            print(line)
 
     def read_standard_error(self):
-        pass
+        while self.__process.canReadLine():
+            line = self.__process.readLine()
+            print(line)
 
     def volume(self, vol=-1) -> int:
         """ 获取或设置音量
@@ -84,11 +91,11 @@ class Player(QObject):
         :param mute: 若为 true, 则设置为静音; 若为 false, 则设置为非静音;
         """
         if mute:
-            self.__mute = True
-            self.process.write(b"mute 1\n")
-        elif mute:
-            self.__mute = False
-            self.process.write(b"mute 0\n")
+            self.__mute = mute
+            self.__process.write(b"mute 1\n")
+        else:
+            self.__mute = mute
+            self.__process.write(b"mute 0\n")
         return self.__mute
 
     def playing(self) -> bool:
