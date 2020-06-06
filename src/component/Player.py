@@ -4,10 +4,10 @@ from src.component.Constant import Constant
 
 
 class Player(QObject):
-    state_empty = -1
-    state_playing = 1
-    state_paused = 2
-    state_stop = 3
+    state_idle = -1
+    state_prepared = 1
+    state_playing = 2
+    state_paused = 3
 
     def __init__(self) -> None:
         super().__init__()
@@ -28,7 +28,7 @@ class Player(QObject):
         self.__process = QProcess(self)
 
         # 播放状态
-        self.state = self.state_empty
+        self.__state = self.state_idle
 
         # 当前播放进度
         self.__position = -1
@@ -38,30 +38,36 @@ class Player(QObject):
 
     def prepare(self, path: str):
         self.__path = path
-        self.state = self.state_stop
+        self.__state = self.state_prepared
         return self
 
     def start(self):
         """ 开始或继续播放。如果以前已暂停播放，则将从暂停的位置继续播放。如果播放已停止或之前从未开始过，则播放将从头开始。"""
-        if self.state == self.state_paused:
+        if self.__state == self.state_paused:
             self.__process.write(b"pause\n")
-        elif self.state == self.state_stop:
+        elif self.__state == self.state_prepared:
             cmd = Constant.res + "/lib/mplayer.exe -slave -quiet -volume %d \"%s\"" % (self.__volume, self.__path)
             self.__process.start(cmd)
             self.__process.readyReadStandardOutput.connect(self.read_standard_output)
             self.__process.readyReadStandardError.connect(self.read_standard_error)
+        return self
+
+    def pause(self):
+        """ 暂停播放 """
+        if self.__state == self.state_playing:
+            self.__process.write(b"pause\n")
+            self.__state = self.state_paused
+
+    def stop(self):
+        self.__process.write(b"quit 1")
+        self.__process.kill()
+        self.__state = self.state_idle
 
     def read_standard_output(self):
         pass
 
     def read_standard_error(self):
         pass
-
-    def pause(self):
-        """ 暂停播放 """
-        if self.state == self.state_playing:
-            self.__process.write(b"pause\n")
-            self.state = self.state_paused
 
     def volume(self, vol=-1) -> int:
         """ 获取或设置音量
@@ -87,7 +93,7 @@ class Player(QObject):
 
     def playing(self) -> bool:
         """ 当前是否处于播放状态 """
-        return self.state == self.state_playing
+        return self.__state == self.state_playing
 
     def listen(self, callback):
         """ 设置播放结束的回调方法 """
