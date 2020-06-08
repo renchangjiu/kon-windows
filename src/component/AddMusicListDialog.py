@@ -13,12 +13,8 @@ class AddMusicListDialog(QtWidgets.QDialog, Ui_Dialog):
 
     def init_ui(self):
         self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.setModal(False)
-        # animation = QPropertyAnimation(self)
-        # animation.setDuration(100000)
-        # animation.setStartValue(0)
-        # animation.setEndValue(1)
-        # animation.start()/
+        self.setModal(True)
+        self.lineEdit.setFocus()
 
         self.setStyleSheet("QDialog{border:2px solid #c8c8c9; border-radius:5px}")
         self.label.setStyleSheet("color:333333;font-size:20px")
@@ -34,11 +30,18 @@ class AddMusicListDialog(QtWidgets.QDialog, Ui_Dialog):
         self.confirm.setEnabled(False)
 
     def init_connect(self):
-        self.lineEdit.textChanged.connect(self.make_confirm_enable)
-        # self.confirm.clicked.connect(self.confirm_to_add_music_list)
+        self.lineEdit.textChanged.connect(self.on_text_changed)
         self.cancel.clicked.connect(self.hide)
 
-    def make_confirm_enable(self):
+    def positive(self, callback):
+        self.confirm.clicked.connect(lambda: self.positive_func(callback))
+        return self
+
+    def positive_func(self, callback):
+        self.hide()
+        callback(self.lineEdit.text())
+
+    def on_text_changed(self):
         text = self.lineEdit.text()
         if len(text.strip()) != 0:
             self.confirm.setEnabled(True)

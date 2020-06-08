@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QListWidgetItem, QT
 from src.Apps import Apps
 from src.component.AddMusicListDialog import AddMusicListDialog
 from src.component.Constant import Constant
+from src.component.PlaylistDialog import PlayListDialog
 from src.component.ScanPaths import ScanPaths
 from src.component.ScannedPathsDialog import ScannedPathsDialog
 from src.model.MusicList import MusicList
@@ -17,7 +18,6 @@ from src.service.LRCParser import LRC
 from src.service.MP3Parser import MP3
 from src.ui.MainWidgetUI import Ui_Form
 from src.ui.Toast import Toast
-from src.component.PlaylistDialog import PlayListDialog
 from src.ui.style import Style
 from src.util import util
 
@@ -346,7 +346,6 @@ class MainWindow(QWidget, Ui_Form):
         self.music_image_label.installEventFilter(self)
         self.btn_music_image.clicked.connect(self.change_to_play_page)
         self.btn_add_music_list.clicked.connect(self.show_add_music_list_page)
-        self.add_music_list_dialog.confirm.clicked.connect(self.confirm_to_add_music_list)
 
         # footer & play
         # self.slider.installEventFilter(self)
@@ -403,8 +402,6 @@ class MainWindow(QWidget, Ui_Form):
         if event.type() == QEvent.WindowActivate:
             if not self.play_list_page.isHidden():
                 self.play_list_page.hide()
-            if not self.add_music_list_dialog.isHidden():
-                self.add_music_list_dialog.hide()
 
         # 2. 如果左下缩放按钮被鼠标左键拖动, 则缩放窗口
         if object == self.btn_zoom and event.type() == QEvent.MouseMove and event.buttons() == Qt.LeftButton:
@@ -541,9 +538,6 @@ class MainWindow(QWidget, Ui_Form):
                                               "QPushButton:hover{border-image:url(./resource/image/添加2.png)}")
         self.btn_add_music_list.setGeometry(160, 39, 18, 18)
 
-        # 点击创建歌单按钮弹出窗口
-        self.add_music_list_dialog = AddMusicListDialog()
-
         # ------------------ 左下音乐名片模块 ------------------ #
         self.music_image_label = QLabel(self.music_info_widget)
         Style.init_music_card_style(self.music_info_widget, self.btn_music_image, self.music_image_label)
@@ -643,19 +637,17 @@ class MainWindow(QWidget, Ui_Form):
             self.play_list_page.hide()
 
     def show_add_music_list_page(self):
-        self.add_music_list_dialog.lineEdit.clear()
+        self.add_music_list_dialog = AddMusicListDialog()
         self.add_music_list_dialog.setGeometry(QCursor.pos().x() + 30, QCursor.pos().y(), 270, 200)
         self.add_music_list_dialog.show()
-        self.add_music_list_dialog.lineEdit.setFocus()
+        self.add_music_list_dialog.positive(self.positive)
 
-    def confirm_to_add_music_list(self):
+    def positive(self, text):
         """ 新增歌单 """
-        text = self.add_music_list_dialog.lineEdit.text()
         if len(text.strip()) > 0:
             self.music_list_service.insert(text)
             self.navigation.clear()
             self.init_data()
-            self.add_music_list_dialog.hide()
 
     # 显示nav右键菜单
     def on_nav_right_click(self, pos):
@@ -1124,3 +1116,4 @@ class MainWindow(QWidget, Ui_Form):
 
     def closeEvent(self, event: QCloseEvent):
         self.stop_current()
+# 1184
