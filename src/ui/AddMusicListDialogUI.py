@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\13595\PycharmProjects\hello\qt\example\music_remake\ui\add_music_list.ui'
+# Form implementation generated from reading ui file 'D:\su\GitHub\kon-windows\src\ui\AddMusicListDialogUI.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.2
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QPropertyAnimation
-from PyQt5.QtGui import QIcon
 
 
 class Ui_Dialog(object):
@@ -73,49 +72,6 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.cancel.setText(_translate("Dialog", "取消"))
         self.confirm.setText(_translate("Dialog", "创建"))
+        self.cancel.setText(_translate("Dialog", "取消"))
         self.label.setText(_translate("Dialog", "新建歌单"))
-
-
-class AddMusicListDialog(QtWidgets.QDialog, Ui_Dialog):
-    def __init__(self):
-        QtWidgets.QDialog.__init__(self)
-        Ui_Dialog.__init__(self)
-        self.setupUi(self)
-        self.init_ui()
-
-    def init_ui(self):
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.setModal(False)
-        # animation = QPropertyAnimation(self)
-        # animation.setDuration(100000)
-        # animation.setStartValue(0)
-        # animation.setEndValue(1)
-        # animation.start()/
-
-        self.setStyleSheet("QDialog{border:2px solid #c8c8c9; border-radius:5px}")
-        self.label.setStyleSheet("color:333333;font-size:20px")
-        self.lineEdit.setStyleSheet("border:2px solid #e1e1e2")
-        self.lineEdit.setPlaceholderText("请输入歌单标题")
-
-        self.cancel.setStyleSheet(
-            "QPushButton{width:80px; height:28px;border: 1px solid #e1e1e2;background-color:#ffffff;border-radius:5px}" +
-            "QPushButton:hover{background-color:#f5f5f7}")
-        self.confirm.setStyleSheet(
-            "QPushButton{width:80px; height:28px;color:#b5d3ea;border: 1px solid #e1e1e2;background-color:#96c0e1;border-radius:5px}")
-        self.cancel.setCursor(QtCore.Qt.PointingHandCursor)
-        self.confirm.setEnabled(False)
-        self.lineEdit.textChanged.connect(self.make_confirm_enable)
-
-    def make_confirm_enable(self):
-        text = self.lineEdit.text()
-        if len(text.strip()) != 0:
-            self.confirm.setEnabled(True)
-            self.confirm.setStyleSheet(
-                "QPushButton{width:80px; height:28px;color:#ffffff;border: 1px solid #e1e1e2;background-color:#0c73c2;border-radius:5px}" +
-                "QPushButton:hover{background-color:#1167a8}")
-        else:
-            self.confirm.setEnabled(False)
-            self.confirm.setStyleSheet(
-                "QPushButton{width:80px; height:28px;color:#b5d3ea;border: 1px solid #e1e1e2;background-color:#96c0e1;border-radius:5px}")

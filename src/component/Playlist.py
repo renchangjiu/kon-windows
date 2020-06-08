@@ -4,7 +4,7 @@ from PyQt5.QtCore import QObject
 from src.model.Music import Music
 
 
-class PlayList(QObject):
+class Playlist(QObject):
     """播放列表
         根据path & from 来判断是否是来自同一歌单同一首音乐
     """

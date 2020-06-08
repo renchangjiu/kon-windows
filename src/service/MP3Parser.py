@@ -58,17 +58,6 @@ class ID3V2:
                         # print("gbk")
                         # print(info[1:].replace(b'\x00', b'\x20').decode('gbk'))
                         self.ret[kind] = info[1:].replace(b'\x00', b'\x20').decode('gbk')
-
-                    # 我修改的(有些不符合规范的mp3无法处理)
-                    # sign_enc = info[0:1]
-                    # if sign_enc == b"\x00":
-                    #     self.ret[kind] = info[1:].decode("ISO8859-1")
-                    # elif sign_enc == b"\x01":
-                    #     self.ret[kind] = info[1:].decode("utf-16")
-                    # elif sign_enc == b"\x02":
-                    #     self.ret[kind] = info[1:].decode("utf-16BE")
-                    # elif sign_enc == b"\x03":
-                    #     self.ret[kind] = info[1:].decode("utf-8")
                 except UnicodeDecodeError as msg:
                     pass
             # 如果文件含有图片
@@ -284,7 +273,6 @@ class MP3:
         self.ret["path"] = file
 
 
-# TODO 无法正确处理不符合规范的mp3文件(如id3v2中, 其设置的编码方式不能解码其内容)
 # ------------------------------------------------------ usage ------------------------------------------------------ #
 def __usage():
     # path = r"D:/13595/Music/李玉刚 石头 - 雨花石.MP3"

@@ -1,4 +1,6 @@
-from PyQt5.QtCore import QObject, QProcess
+import re
+
+from PyQt5.QtCore import QObject, QProcess, QTimer
 
 from src.component.Constant import Constant
 
@@ -9,7 +11,10 @@ class Player(QObject):
     state_playing = 2
     state_paused = 3
 
-    def __init__(self,) -> None:
+    __duration_ptn = re.compile("ANS_LENGTH=(.*?)\\\\r")
+    __position_ptn = re.compile("ANS_TIME_POSITION=(.*?)\\\\r")
+
+    def __init__(self) -> None:
         super().__init__()
         # 音量
         self.__volume = 50
@@ -25,16 +30,20 @@ class Player(QObject):
 
         # 负责操作 mplayer
         self.__process = QProcess(self)
-        # self.__process = None
 
         # 播放状态
         self.__state = self.state_idle
 
-        # 当前播放进度
-        self.__position = -1
+        # 当前播放进度, 单位: 毫秒
+        self.__position = 0
 
-        # 时长
-        self.__duration = -1
+        # 时长, 单位: 毫秒
+        self.__duration = 0
+
+        # 定时器, 每隔0.1s 使 mplayer 输出时间信息(duration & position)
+        self.timer = QTimer(self)
+        self.timer.start(100)
+        self.timer.timeout.connect(self.__get_info)
 
     def prepare(self, path: str):
         self.__path = path
@@ -45,11 +54,14 @@ class Player(QObject):
         """ 开始或继续播放。如果以前已暂停播放，则将从暂停的位置继续播放。如果播放已停止或之前从未开始过，则播放将从头开始。"""
         if self.__state == self.state_paused:
             self.__process.write(b"pause\n")
+            self.__state = self.state_playing
         elif self.__state == self.state_prepared:
             cmd = Constant.res + "/lib/mplayer.exe -slave -quiet -volume %d \"%s\"" % (self.__volume, self.__path)
             self.__process.start(cmd)
-            self.__process.readyReadStandardOutput.connect(self.read_standard_output)
+            self.__process.readyReadStandardOutput.connect(self.__parse_info)
             self.__process.readyReadStandardError.connect(self.read_standard_error)
+            self.__process.write(b"get_time_length\n")
+            self.__state = self.state_playing
         return self
 
     def pause(self):
@@ -106,10 +118,34 @@ class Player(QObject):
         """ 设置播放结束的回调方法 """
         self.__complete_callback = callback
 
-    def position(self):
+    def position(self) -> int:
         # 获取当前播放进度
         return self.__position
 
-    def duration(self):
+    def duration(self) -> int:
         # 获取时长
         return self.__duration
+
+    def __get_info(self):
+        if self.__state == self.state_playing:
+            self.__process.write(b"get_time_pos\n")
+
+    def __parse_info(self):
+        while self.__process.canReadLine():
+            output = str(self.__process.readLine())
+            print(output)
+            position_match = self.__position_ptn.search(output)
+            # 处理播放位置
+            if position_match is not None:
+                self.__position = int(float(position_match.group(1))) * 1000
+                return
+            duration_match = self.__duration_ptn.search(output)
+            # 处理时长
+            if duration_match is not None:
+                self.__duration = int(float(duration_match.group(1))) * 1000
+                return
+            # 处理结束事件
+            if output.find("Exiting... (End of file)") != -1:
+                print("当前歌曲播放结束")
+                self.__complete_callback()
+                return

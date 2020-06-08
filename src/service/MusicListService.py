@@ -3,7 +3,7 @@ import time
 from src.dao.MusicDao import MusicDao
 from src.dao.MusicListDao import MusicListDao
 from src.model.MusicList import MusicList
-from src.component.PlayList import PlayList
+from src.component.Playlist import Playlist
 
 
 class MusicListService:
@@ -60,11 +60,11 @@ class MusicListService:
         self.music_list_dao.insert(ml)
 
     @staticmethod
-    def to_play_list(music_list: MusicList) -> PlayList:
-        """ 把MusicList 转成 PlayList """
-        play_list = PlayList()
-        play_list.set_musics(music_list.musics)
-        return play_list
+    def to_playlist(music_list: MusicList) -> Playlist:
+        """ 把MusicList 转成 Playlist """
+        playlist = Playlist()
+        playlist.set_musics(music_list.musics)
+        return playlist
 
 
 if __name__ == "__main__":

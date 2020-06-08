@@ -8,16 +8,16 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QListWidgetItem, QT
     QAction, QMenu, QLabel, QWidgetAction, QHBoxLayout
 
 from src.Apps import Apps
+from src.component.AddMusicListDialog import AddMusicListDialog
 from src.component.Constant import Constant
 from src.component.ScanPaths import ScanPaths
 from src.component.ScannedPathsDialog import ScannedPathsDialog
 from src.model.MusicList import MusicList
 from src.service.LRCParser import LRC
 from src.service.MP3Parser import MP3
-from src.ui import add_music_list
 from src.ui.MainWidgetUI import Ui_Form
 from src.ui.Toast import Toast
-from src.ui.play_list_page import PlayListPage
+from src.component.PlaylistDialog import PlayListDialog
 from src.ui.style import Style
 from src.util import util
 
@@ -124,7 +124,7 @@ class MainWindow(QWidget, Ui_Form):
         self.musics.setColumnCount(5)
         # 将歌单中的歌曲列表加载到 table widget
         if self.cur_play_list is None:
-            self.cur_play_list = self.music_list_service.to_play_list(self.cur_music_list)
+            self.cur_play_list = self.music_list_service.to_playlist(self.cur_music_list)
             self.cur_play_list.set_current_index(0)
             self.cur_play_list.current_music_change.connect(self.on_cur_play_list_change)
         self.show_musics_data()
@@ -282,7 +282,7 @@ class MainWindow(QWidget, Ui_Form):
         self.state = self.playing_state
         index = model_index.row()
         # 把当前歌单的全部音乐加入到播放列表
-        self.cur_play_list = self.music_list_service.to_play_list(self.cur_whole_music_list)
+        self.cur_play_list = self.music_list_service.to_playlist(self.cur_whole_music_list)
         self.cur_play_list.current_music_change.connect(self.on_cur_play_list_change)
         # 找到被双击的音乐在 cur_whole_music_list 中的索引
         self.cur_play_list.set_current_index(index)
@@ -346,7 +346,6 @@ class MainWindow(QWidget, Ui_Form):
         self.music_image_label.installEventFilter(self)
         self.btn_music_image.clicked.connect(self.change_to_play_page)
         self.btn_add_music_list.clicked.connect(self.show_add_music_list_page)
-        self.add_music_list_dialog.cancel.clicked.connect(self.cancel_to_add_music_list)
         self.add_music_list_dialog.confirm.clicked.connect(self.confirm_to_add_music_list)
 
         # footer & play
@@ -543,7 +542,7 @@ class MainWindow(QWidget, Ui_Form):
         self.btn_add_music_list.setGeometry(160, 39, 18, 18)
 
         # 点击创建歌单按钮弹出窗口
-        self.add_music_list_dialog = add_music_list.AddMusicListDialog()
+        self.add_music_list_dialog = AddMusicListDialog()
 
         # ------------------ 左下音乐名片模块 ------------------ #
         self.music_image_label = QLabel(self.music_info_widget)
@@ -598,7 +597,7 @@ class MainWindow(QWidget, Ui_Form):
         self.label_lyric.setText(s)
 
         # 右下播放列表页面
-        self.play_list_page = PlayListPage(self)
+        self.play_list_page = PlayListDialog(self)
         # 本地音乐页面
         self.widget.setStyleSheet("QWidget#widget{background-color:#fafafa;border:none;}")
         self.btn_choose_dir.setFlat(True)
@@ -657,9 +656,6 @@ class MainWindow(QWidget, Ui_Form):
             self.navigation.clear()
             self.init_data()
             self.add_music_list_dialog.hide()
-
-    def cancel_to_add_music_list(self):
-        self.add_music_list_dialog.hide()
 
     # 显示nav右键菜单
     def on_nav_right_click(self, pos):
