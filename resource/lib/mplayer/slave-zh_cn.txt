@@ -252,10 +252,10 @@ radio_step_freq <value>
     按<value>调整频率（positive - up, negative - down）。
 
 seek <value> [type]
-    跳跃到电影中的某个位置。
+    跳跃到指定的时间位置。
         0 is a relative seek of +/- <value> seconds (default).
-        1 is a seek to <value> % in the movie.
-        2 跳跃到<value>秒的绝对位置。
+        1 跳跃到 <value>% 的位置。
+        2 跳跃到 <value> 秒的绝对位置。
 
 seek_chapter <value> [type]
     跳跃到本章节的开头。

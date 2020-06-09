@@ -2,7 +2,7 @@ import re
 
 from PyQt5.QtCore import QObject, QProcess, QTimer
 
-from src.component.Constant import Constant
+from src.component.Const import Const
 
 
 class Player(QObject):
@@ -30,6 +30,8 @@ class Player(QObject):
 
         # 负责操作 mplayer
         self.__process = QProcess(self)
+        self.__process.readyReadStandardOutput.connect(self.__read_standard_output)
+        self.__process.readyReadStandardError.connect(self.__read_error_output)
 
         # 播放状态
         self.__state = self.state_idle
@@ -56,10 +58,8 @@ class Player(QObject):
             self.__process.write(b"pause\n")
             self.__state = self.state_playing
         elif self.__state == self.state_prepared:
-            cmd = Constant.res + "/lib/mplayer.exe -slave -quiet -volume %d \"%s\"" % (self.__volume, self.__path)
+            cmd = Const.res + "/lib/mplayer.exe -slave -quiet -volume %d \"%s\"" % (self.__volume, self.__path)
             self.__process.start(cmd)
-            self.__process.readyReadStandardOutput.connect(self.__parse_info)
-            self.__process.readyReadStandardError.connect(self.read_standard_error)
             self.__process.write(b"get_time_length\n")
             self.__state = self.state_playing
         return self
@@ -74,19 +74,6 @@ class Player(QObject):
         self.__process.write(b"quit 1")
         self.__process.kill()
         self.__state = self.state_idle
-
-    def load(self, path: str):
-        self.__process.write(b"loadfile %s 0\n" % path.encode())
-
-    def read_standard_output(self):
-        while self.__process.canReadLine():
-            line = self.__process.readLine()
-            print(line)
-
-    def read_standard_error(self):
-        while self.__process.canReadLine():
-            line = self.__process.readLine()
-            print(line)
 
     def volume(self, vol=-1) -> int:
         """ 获取或设置音量
@@ -111,41 +98,58 @@ class Player(QObject):
         return self.__mute
 
     def playing(self) -> bool:
-        """ 当前是否处于播放状态 """
+        """ 当前是否处于播放状态。 """
         return self.__state == self.state_playing
+
+    def seek(self, position: int):
+        """ 跳跃到指定的时间位置。
+        :param position: 绝对时间位置, 毫秒。
+        """
+        self.__process.write(b"seek %.1f 2\n" % (position / 1000))
 
     def listen(self, callback):
         """ 设置播放结束的回调方法 """
         self.__complete_callback = callback
 
     def position(self) -> int:
-        # 获取当前播放进度
+        """ 获取当前播放进度。 """
         return self.__position
 
     def duration(self) -> int:
-        # 获取时长
+        """ 获取时长。 """
         return self.__duration
 
     def __get_info(self):
         if self.__state == self.state_playing:
             self.__process.write(b"get_time_pos\n")
 
-    def __parse_info(self):
+    def __read_standard_output(self):
         while self.__process.canReadLine():
             output = str(self.__process.readLine())
             print(output)
-            position_match = self.__position_ptn.search(output)
-            # 处理播放位置
-            if position_match is not None:
-                self.__position = int(float(position_match.group(1))) * 1000
-                return
-            duration_match = self.__duration_ptn.search(output)
-            # 处理时长
-            if duration_match is not None:
-                self.__duration = int(float(duration_match.group(1))) * 1000
-                return
-            # 处理结束事件
-            if output.find("Exiting... (End of file)") != -1:
-                print("当前歌曲播放结束")
+            self.__parse_output(output)
+
+    def __parse_output(self, output: str):
+        position_match = self.__position_ptn.search(output)
+        # 处理播放位置
+        if position_match is not None:
+            self.__position = int(float(position_match.group(1))) * 1000
+            return
+        duration_match = self.__duration_ptn.search(output)
+        # 处理时长
+        if duration_match is not None:
+            self.__duration = int(float(duration_match.group(1))) * 1000
+            return
+        # 处理结束事件
+        if output.find("Exiting... (End of file)") != -1:
+            print("当前歌曲播放结束")
+            self.__state = self.state_idle
+            self.__path = ""
+            if self.__complete_callback is not None:
                 self.__complete_callback()
-                return
+            return
+
+    def __read_error_output(self):
+        while self.__process.canReadLine():
+            line = self.__process.readLine()
+            print(line)

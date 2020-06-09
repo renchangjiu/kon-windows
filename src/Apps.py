@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from src.component.Constant import Constant
+from src.component.Const import Const
 from src.component.config.Config import Config
 from src.model.MusicList import MusicList
 from src.service.MusicListService import MusicListService
@@ -23,17 +23,17 @@ class Apps(object):
     @staticmethod
     def check_app():
         """ 检查程序完整性 """
-        if not os.path.exists(Constant.data):
-            os.mkdir(Constant.data)
-        db_file = Constant.data + "/data.db"
+        if not os.path.exists(Const.data):
+            os.mkdir(Const.data)
+        db_file = Const.data + "/data.db"
         if not os.path.exists(db_file):
-            shutil.copyfile(Constant.res + "/example.data.db", db_file)
+            shutil.copyfile(Const.res + "/example.data.db", db_file)
             music_service = MusicService()
             music_service.init()
-            path = Constant.res + "/放課後ティータイム - Listen!!.mp3"
+            path = Const.res + "/放課後ティータイム - Listen!!.mp3"
             music = music_service.gen_music_by_path(path, MusicList.DEFAULT_ID)
             music_service.insert(music)
 
-        config_path = Constant.data + "/config.json"
+        config_path = Const.data + "/config.json"
         if not os.path.exists(config_path):
-            shutil.copyfile(Constant.res + "/example.config.json", config_path)
+            shutil.copyfile(Const.res + "/example.config.json", config_path)

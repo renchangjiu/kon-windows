@@ -1,8 +1,7 @@
-import sys
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap, QFontMetrics
-from PyQt5.QtWidgets import QApplication, QWidget, QDialog
+from PyQt5.QtWidgets import QDialog
 
 
 class Toast(QDialog):

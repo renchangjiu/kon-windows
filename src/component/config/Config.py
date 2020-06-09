@@ -1,6 +1,6 @@
 import json
 
-from src.component.Constant import Constant
+from src.component.Const import Const
 from src.component.config.ScannedPath import ScannedPath
 
 
@@ -13,7 +13,7 @@ class Config(object):
 
     def init(self):
         """ 将配置文件解析为配置对象 """
-        self.__config_path = Constant.data + "/config.json"
+        self.__config_path = Const.data + "/config.json"
         file = open(self.__config_path, "r", encoding="utf-8")
         json_obj = json.loads(file.read())
         file.close()

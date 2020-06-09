@@ -1,7 +1,8 @@
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QListWidget, QSlider, QWidget, QLabel, QPushButton
-from src.component.Constant import Constant
+
+from src.common.QssHelper import QssHelper
 
 
 class Style(object):
@@ -11,10 +12,7 @@ class Style(object):
                           btn_window_max: QPushButton,
                           btn_window_min: QPushButton, btn_set: QPushButton):
         # ------------------ header------------------ #
-        qss_path = Constant.res + "/qss/header.qss"
-        qss = open(qss_path, "r", encoding="utf-8")
-        header.setStyleSheet(qss.read())
-        qss.close()
+        header.setStyleSheet(QssHelper.load("/header.css"))
         btn_icon.setCursor(Qt.PointingHandCursor)
         btn_window_close.setCursor(Qt.PointingHandCursor)
         btn_window_max.setCursor(Qt.PointingHandCursor)
@@ -49,9 +47,7 @@ class Style(object):
         # ------------------ footer ------------------ #
         slider_volume.setValue(volume)
         slider_volume.setCursor(Qt.PointingHandCursor)
-        qss = open("./resource/qss/footer.qss", "r", encoding="utf-8")
-        footer.setStyleSheet(qss.read())
-        qss.close()
+        footer.setStyleSheet(QssHelper.load("/footer.css"))
         btn_zoom.setGeometry(width - 18, height - 18, 14, 14)
         btn_zoom.setStyleSheet("QPushButton{border-image:url(./resource/image/缩放.png)}")
         btn_zoom.setCursor(Qt.SizeFDiagCursor)

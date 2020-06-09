@@ -3,7 +3,7 @@ import sys
 from PyQt5 import QtWidgets
 
 from src.Apps import Apps
-from src.component.Constant import Constant
+from src.component.Const import Const
 from src.component.MainWindow import MainWindow
 
 
@@ -22,7 +22,7 @@ def __run():
 
 
 if __name__ == "__main__":
-    Constant.init(sys.argv)
+    Const.init(sys.argv)
     Apps.check_app()
     Apps.init()
     __run()

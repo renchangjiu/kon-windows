@@ -1,0 +1,44 @@
+.QDialog {
+    border: 1px solid #C8C8C9;
+    border-radius: 5px;
+    background-color: #FAFAFA;
+}
+
+QLabel {
+    color: #333333;
+    font-size: 20px
+}
+
+QLineEdit {
+    border: 1px solid #E1E1E2;
+
+}
+
+QPushButton {
+    width: 80px;
+    height: 28px;
+    border: 1px solid #E1E1E2;
+    border-radius: 5px
+}
+
+#cancel {
+    background-color: #FFFFFF;
+}
+
+#cancel:hover {
+    background-color: #F5F5F7
+}
+
+#confirm {
+    background-color: #96C0E1;
+}
+
+#confirm:enabled {
+    color: #FFFFFF;
+    background-color: #0C73C2;
+}
+
+#confirm:enabled:hover {
+    background-color: #1167A8
+}
+

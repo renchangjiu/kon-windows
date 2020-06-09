@@ -1,5 +1,8 @@
 from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import QCursor
 
+from src.common.QssHelper import QssHelper
+from src.component.Const import Const
 from src.ui.AddMusicListDialogUI import Ui_Dialog
 
 
@@ -15,40 +18,27 @@ class AddMusicListDialog(QtWidgets.QDialog, Ui_Dialog):
         self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
         self.setModal(True)
         self.lineEdit.setFocus()
-
-        self.setStyleSheet("QDialog{border:2px solid #c8c8c9; border-radius:5px}")
-        self.label.setStyleSheet("color:333333;font-size:20px")
-        self.lineEdit.setStyleSheet("border:2px solid #e1e1e2")
-        self.lineEdit.setPlaceholderText("请输入歌单标题")
-
-        self.cancel.setStyleSheet(
-            "QPushButton{width:80px; height:28px;border: 1px solid #e1e1e2;background-color:#ffffff;border-radius:5px}" +
-            "QPushButton:hover{background-color:#f5f5f7}")
-        self.confirm.setStyleSheet(
-            "QPushButton{width:80px; height:28px;color:#b5d3ea;border: 1px solid #e1e1e2;background-color:#96c0e1;border-radius:5px}")
+        self.setStyleSheet(QssHelper.load("/AddMusicListDialogUI.css"))
         self.cancel.setCursor(QtCore.Qt.PointingHandCursor)
         self.confirm.setEnabled(False)
 
     def init_connect(self):
-        self.lineEdit.textChanged.connect(self.on_text_changed)
+        self.lineEdit.textChanged.connect(lambda: self.confirm.setEnabled(len(self.lineEdit.text().strip()) != 0))
         self.cancel.clicked.connect(self.hide)
 
+    @staticmethod
+    def show_(parent, positive_callback):
+        dialog = AddMusicListDialog()
+        dialog.setParent(parent)
+        pos = dialog.mapFromGlobal(QCursor.pos())
+        dialog.setGeometry(pos.x() + 20, pos.y() - 30, 270, 210)
+        dialog.positive(positive_callback)
+        dialog.show()
+
     def positive(self, callback):
-        self.confirm.clicked.connect(lambda: self.positive_func(callback))
+        self.confirm.clicked.connect(lambda: self.__positive_func(callback))
         return self
 
-    def positive_func(self, callback):
+    def __positive_func(self, callback):
         self.hide()
         callback(self.lineEdit.text())
-
-    def on_text_changed(self):
-        text = self.lineEdit.text()
-        if len(text.strip()) != 0:
-            self.confirm.setEnabled(True)
-            self.confirm.setStyleSheet(
-                "QPushButton{width:80px; height:28px;color:#ffffff;border: 1px solid #e1e1e2;background-color:#0c73c2;border-radius:5px}" +
-                "QPushButton:hover{background-color:#1167a8}")
-        else:
-            self.confirm.setEnabled(False)
-            self.confirm.setStyleSheet(
-                "QPushButton{width:80px; height:28px;color:#b5d3ea;border: 1px solid #e1e1e2;background-color:#96c0e1;border-radius:5px}")

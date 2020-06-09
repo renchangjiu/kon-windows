@@ -1,6 +1,6 @@
 import time
 
-from src.component.Constant import Constant
+from src.component.Const import Const
 from src.component.Player import Player
 from test import Test
 
@@ -8,7 +8,7 @@ from test import Test
 class TestPlayer(object):
     def test_player(self):
         player = Player()
-        player.prepare(Constant.res + "/放課後ティータイム - Listen!!.mp3").start()
+        player.prepare(Const.res + "/放課後ティータイム - Listen!!.mp3").start()
         player.position()
         time.sleep(5)
         player.stop()
