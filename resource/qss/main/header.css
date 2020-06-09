@@ -37,3 +37,13 @@ QPushButton#btn_set {
 QPushButton#btn_set:hover {
     border-image: url(/resource/image/设置2.png)
 }
+
+#le_search {
+    border: none;
+    border-radius: 10px;
+    padding: 2px 4px;
+    background-color: #a82828;
+    color: #cccccc;
+    selection-color: yellow;
+    selection-background-color: blue;
+}

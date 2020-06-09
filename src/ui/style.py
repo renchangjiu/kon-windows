@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QListWidget, QSlider, QWidget, QLabel, QPushButton
+from PyQt5.QtWidgets import QSlider, QWidget, QLabel, QPushButton
 
 from src.common.QssHelper import QssHelper
 
@@ -8,46 +8,11 @@ from src.common.QssHelper import QssHelper
 class Style(object):
 
     @staticmethod
-    def init_header_style(header: QWidget, btn_icon: QPushButton, btn_window_close: QPushButton,
-                          btn_window_max: QPushButton,
-                          btn_window_min: QPushButton, btn_set: QPushButton):
-        # ------------------ header------------------ #
-        header.setStyleSheet(QssHelper.load("/header.css"))
-        btn_icon.setCursor(Qt.PointingHandCursor)
-        btn_window_close.setCursor(Qt.PointingHandCursor)
-        btn_window_max.setCursor(Qt.PointingHandCursor)
-        btn_window_min.setCursor(Qt.PointingHandCursor)
-        btn_set.setCursor(Qt.PointingHandCursor)
-
-    @staticmethod
-    def init_nav_style(navigation: QListWidget):
-        # ------------------ 左边导航栏 ------------------ #
-        navigation.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        navigation.setStyleSheet(
-            "QListWidget{"
-            "outline:0px; color:#5c5c5c; background:#f5f5f7;border-top:none;border-left:none;font-size:13px;"
-            "border-right:1px solid #e1e1e2;border-bottom:1px solid #e1e1e2}"
-            "QListWidget::Item{height:32px;border:0px solid gray;padding-left:19px;font-size:13px;}"
-            "QListWidget::Item:hover{color:#000000;background:transparent;border:0px solid gray;}"
-            "QListWidget::Item:selected{background:#e6e7ea;color:#000000;border-left: 3px solid #c62f2f;}")
-        navigation.verticalScrollBar().setStyleSheet("QScrollBar{background:#fafafa; width: 8px;}"
-                                                     "QScrollBar::handle{background:#e1e1e2;border-radius:4px;}"
-                                                     "QScrollBar::handle:hover{background:#cfcfd1;}"
-                                                     "QScrollBar::sub-line{background:transparent;}"
-                                                     "QScrollBar::add-line{background:transparent;}"
-                                                     "QScrollBar::add-page{background:#f5f5f7;}"
-                                                     "QScrollBar::sub-page{background:#f5f5f7;}")
-        navigation.setCursor(Qt.PointingHandCursor)
-        # 更改右键策略
-        navigation.setContextMenuPolicy(Qt.CustomContextMenu)
-
-    @staticmethod
     def init_footer_style(slider_volume: QSlider, footer: QWidget, volume: int, btn_zoom: QPushButton, width: int,
                           height: int):
         # ------------------ footer ------------------ #
         slider_volume.setValue(volume)
-        slider_volume.setCursor(Qt.PointingHandCursor)
-        footer.setStyleSheet(QssHelper.load("/footer.css"))
+        footer.setStyleSheet(QssHelper.load("/main/footer.css"))
         btn_zoom.setGeometry(width - 18, height - 18, 14, 14)
         btn_zoom.setStyleSheet("QPushButton{border-image:url(./resource/image/缩放.png)}")
         btn_zoom.setCursor(Qt.SizeFDiagCursor)

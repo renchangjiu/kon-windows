@@ -31,6 +31,9 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <property name="leftMargin">
     <number>0</number>
@@ -132,7 +135,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>280</width>
+        <width>300</width>
         <height>181</height>
        </rect>
       </property>
@@ -154,22 +157,6 @@
       </layout>
      </widget>
     </widget>
-   </item>
-   <item row="2" column="1">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item row="3" column="0" colspan="2">
     <widget class="QWidget" name="footer" native="true">

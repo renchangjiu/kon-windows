@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QListWidgetItem, QT
     QAction, QMenu, QLabel, QWidgetAction, QHBoxLayout
 
 from src.Apps import Apps
+from src.common.QssHelper import QssHelper
 from src.component.AddMusicListDialog import AddMusicListDialog
 from src.component.Const import Const
 from src.component.Player import Player
@@ -140,26 +141,9 @@ class MainWindow(QWidget, Ui_Form):
         # --------------------- 1. 歌单音乐列表UI --------------------- #
         self.musics.setHorizontalHeaderLabels(["", "音乐标题", "歌手", "专辑", "时长"])
         self.musics.setColumnCount(5)
-        self.musics.setStyleSheet("QTableWidget{border:none;background:#fafafa;}" +
-                                  "QTableWidget::item::selected{background:#e3e3e5}")
-        # 设置表头
-        self.musics.horizontalHeader().setStyleSheet(
-            """QHeaderView::section{background:#fafafa;border:none;border-right:1px solid #e1e1e2;height:30px;}
-            QHeaderView::section:hover{background:#ebeced;border:none}
-            QHeaderView{color:#666666; border-top:1px solid #c62f2f;}
-            """)
-
         # --------------------- 2. 本地音乐页面UI--------------------- #
         self.tb_local_music.setColumnCount(6)
         self.tb_local_music.setHorizontalHeaderLabels(["", "音乐标题", "歌手", "专辑", "时长", "大小"])
-        self.tb_local_music.setStyleSheet("QTableWidget{border:none}" +
-                                          "QTableWidget::item::selected{background:#e3e3e5}")
-        # 设置表头
-        self.tb_local_music.horizontalHeader().setStyleSheet(
-            """QHeaderView::section{background:#fafafa;border:none;border-right:1px solid #e1e1e2;height:30px;}
-            QHeaderView::section:hover{background:#eceeed;border:none;}
-            QHeaderView{color:#666666; border-top:1px solid #e1e1e2;}
-            """)
 
     # 当点击navigation时, 显示对应页面
     def on_nav_clicked(self, list_item: QListWidgetItem):
@@ -352,7 +336,7 @@ class MainWindow(QWidget, Ui_Form):
         self.btn_music_image.installEventFilter(self)
         self.music_image_label.installEventFilter(self)
         self.btn_music_image.clicked.connect(self.change_to_play_page)
-        self.btn_add_music_list.clicked.connect(self.show_add_music_list_dialog)
+        self.btn_add_music_list.clicked.connect(lambda: AddMusicListDialog.show_(self, self.positive))
 
         # footer & play
         # self.slider.installEventFilter(self)
@@ -369,7 +353,7 @@ class MainWindow(QWidget, Ui_Form):
         self.cur_play_list.current_music_change.connect(self.on_cur_play_list_change)
 
         # musics
-        self.music_list_search.textChanged.connect(self.on_search)
+        self.le_search_music_list.textChanged.connect(self.on_search)
         self.musics.doubleClicked.connect(self.on_tb_double_clicked)
         self.musics.customContextMenuRequested.connect(self.on_musics_right_click)
 
@@ -378,7 +362,7 @@ class MainWindow(QWidget, Ui_Form):
 
         # 本地音乐页面
         self.le_search_local_music.textChanged.connect(self.on_search)
-        self.btn_choose_dir.clicked.connect(lambda: ScannedPathsDialog(self).exec())
+        self.btn_choose_dir.clicked.connect(lambda: ScannedPathsDialog.show_(self))
         self.tb_local_music.doubleClicked.connect(self.on_tb_double_clicked)
         self.tb_local_music.customContextMenuRequested.connect(self.on_tb_local_music_right_click)  # 右键菜单
 
@@ -412,13 +396,9 @@ class MainWindow(QWidget, Ui_Form):
 
         # 2. 如果左下缩放按钮被鼠标左键拖动, 则缩放窗口
         if object == self.btn_zoom and event.type() == QEvent.MouseMove and event.buttons() == Qt.LeftButton:
-            global_x = event.globalX()
-            global_y = event.globalY()
-            window_global_x = self.x()
-            window_global_y = self.y()
-            width = global_x - window_global_x
-            heigth = global_y - window_global_y
-            self.setGeometry(window_global_x, window_global_y, width, heigth)
+            width = event.globalX() - self.x()
+            height = event.globalY() - self.y()
+            self.setGeometry(self.x(), self.y(), width, height)
         if object == self.header and type(event) == QMouseEvent and event.buttons() == Qt.LeftButton:
             # 如果标题栏被双击
             if event.type() == QEvent.MouseButtonDblClick:
@@ -449,7 +429,6 @@ class MainWindow(QWidget, Ui_Form):
                 self.is_wheeling = True
             else:
                 self.is_wheeling = False
-            # print("eventfilter: " + str(self.is_wheeling))
         return super().eventFilter(object, event)
 
     def show_maximized_normal(self):
@@ -497,20 +476,14 @@ class MainWindow(QWidget, Ui_Form):
 
     def init_ui(self):
         self.setWindowIconText("qaq")
-        self.setWindowIcon(QIcon(Const.res + "/image/app-icon.png"))
+        self.setWindowIcon(QIcon(Const.rp("/image/app-icon.png")))
+
         # font = QFont("Consolas", 10, 50)
         # self.musics.setFont(font)
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.main_stacked_widget.setCurrentWidget(self.main_page)
         self.stackedWidget_2.setCurrentWidget(self.music_list_detail)
         # ------------------ header------------------ #
-        Style.init_header_style(self.header, self.btn_icon, self.btn_window_close, self.btn_window_max,
-                                self.btn_window_min, self.btn_set)
-
-        # TODO 输入文字后, 前景色变亮
-        self.le_search.setPlaceholderText("搜索音乐")
-        self.le_search.setStyleSheet("border:none;border-radius:10px;padding:2px 4px; background-color:#a82828;" +
-                                     "color:#cccccc;selection-color:yellow;selection-background-color: blue;")
         self.search_act = QAction(self)
         self.search_act.setIcon(QIcon(Const.res + "/image/搜索3.png"))
         self.le_search.addAction(self.search_act, QLineEdit.TrailingPosition)
@@ -522,21 +495,13 @@ class MainWindow(QWidget, Ui_Form):
         self.music_count.setStyleSheet("color:#999999")
         self.music_list_play_count.setStyleSheet("color:#999999")
         self.music_list_image.setPixmap(QPixmap(Const.res + "/image/music_list/rikka.png"))
-        self.widget_2.setStyleSheet("background-color:#fafafa;border:none")
-        self.label_4.setStyleSheet("QLabel{background-color:#c62f2f; color:white;border:1px solid red}")
-        # 歌单音乐列表上方搜索框
-        self.music_list_search.setStyleSheet(
-            "border:none;border-radius:10px;padding:2px 4px; background-color:#ffffff;" +
-            "color:#cccccc;selection-color:yellow;selection-background-color: blue;")
-        self.music_list_search.setPlaceholderText("搜索歌单音乐")
+        # self.widget_2.setStyleSheet("background-color:#fafafa;border:none")
         self.search_act = QAction(self)
         self.search_act.setIcon(QIcon(Const.res + "/image/搜索3.png"))
-        self.music_list_search.addAction(self.search_act, QLineEdit.TrailingPosition)
+        self.le_search_music_list.addAction(self.search_act, QLineEdit.TrailingPosition)
         self.main_stacked_widget.setStyleSheet("border-bottom: 1px solid #E1E1E2")
 
         # # ------------------ 左边导航栏 ------------------ #
-        Style.init_nav_style(self.navigation)
-
         self.slider_progress.setCursor(Qt.PointingHandCursor)
         # 创建歌单按钮
         self.btn_add_music_list = QPushButton(self.navigation)
@@ -574,23 +539,7 @@ class MainWindow(QWidget, Ui_Form):
             "QPushButton:hover{border-image:url(./resource/image/取消全屏2.png)}")
         self.btn_return.setCursor(Qt.PointingHandCursor)
         s = "<p>111阿斯蒂芬</p><br/><p>222发个好豆腐干</p><br/><p>333地方活佛济公</p><br/><p>444打成供东方红</p><br/><p>555宽高画更健康换个</p><br/>" \
-            # "<p>666地方规划局和</p><br/><p>777飞规划局规划局</p><br/><p>88积分换个房管局8</p><br/><p>9</p><br/><p>10</p><br/><p>11</p><br/>" \
-        # "<p>12</p><p>13</p><p>14</p><p>15</p>" \
-        # "<p>16</p><p>17</p><p>18</p>" \
-        # "<p>19</p><p>20</p><p>21</p><p>22</p><p>23</p><p>24</p><p>25</p><p style='color:white'>26</p><p>27</p>" \
-        # "<p>28</p><p>29</p><p>30</p><p>31</p><p>32</p><p>33</p><p>34</p><p>35</p><p>36</p><p>37</p><p>&nbsp;</p><p>38</p><p>&nbsp;</p><p>壊すわ</p>"\
-        # "<p>666地方规划局和</p><br/><p>777飞规划局规划局</p><br/><p>88积分换个房管局8</p><br/><p>9</p><br/><p>10</p><br/><p>11</p><br/>" \
-        # "<p>12</p><p>13</p><p>14</p><p>15</p>" \
-        # "<p>16</p><p>17</p><p>18</p>" \
-        # "<p>19</p><p>20</p><p>21</p><p>22</p><p>23</p><p>24</p><p>25</p><p style='color:white'>26</p><p>27</p>" \
-        # "<p>28</p><p>29</p><p>30</p><p>31</p><p>32</p><p>33</p><p>34</p><p>35</p><p>36</p><p>37</p><p>&nbsp;</p><p>38</p><p>&nbsp;</p><p>壊すわ</p>"\
-        # "<p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p><p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p>" \
-        # "<p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p><p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p>" \
-        # "<p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p><p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p>" \
-        # "<p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p><p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p>" \
-        # "<p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p><p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p>" \
-        # "<p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p><p>asdfghjkl</p><p>asdgdsg</p><p>asdgsdgsdg</p>"
-        # min 总是0
+            # min 总是0
         min = self.scrollArea.verticalScrollBar().minimum()
         _max = self.scrollArea.verticalScrollBar().maximum()
         print(min)
@@ -601,18 +550,13 @@ class MainWindow(QWidget, Ui_Form):
         self.play_list_page = PlayListDialog(self)
         # 本地音乐页面
         self.widget.setStyleSheet("QWidget#widget{background-color:#fafafa;border:none;}")
-        self.btn_choose_dir.setFlat(True)
-        self.btn_choose_dir.setStyleSheet("QPushButton#btn_choose_dir{background:none;color:#0a63a8;border:none;}")
-        self.btn_choose_dir.setCursor(Qt.PointingHandCursor)
-        # 搜索框
-        self.le_search_local_music.setStyleSheet(
-            "QLineEdit#le_search_local_music{border:none;border-radius:10px;padding:2px 4px; background-color:#ffffff;" +
-            "color:#000000;selection-color:yellow;selection-background-color: blue;}")
-        self.le_search_local_music.setPlaceholderText("搜索本地音乐")
         self.search_act_2 = QAction(self)
         self.search_act_2.setIcon(QIcon(Const.res + "/image/搜索3.png"))
         self.le_search_local_music.addAction(self.search_act_2, QLineEdit.TrailingPosition)
         self.init_button()
+        self.setStyleSheet(QssHelper.load("/main/content.css"))
+        self.header.setStyleSheet(QssHelper.load("/main/header.css"))
+        self.navigation.setStyleSheet(QssHelper.load("/main/navigation.css"))
 
     def init_menu(self):
         # 1. 导航栏右键菜单
@@ -642,14 +586,6 @@ class MainWindow(QWidget, Ui_Form):
             self.play_list_page.show_data(self.cur_play_list)
         else:
             self.play_list_page.hide()
-
-    def show_add_music_list_dialog(self):
-        """ 显示创建歌单的对话框 """
-        AddMusicListDialog.show_(self, self.positive)
-        # dialog = AddMusicListDialog()
-        # dialog.setGeometry(QCursor.pos().x() + 30, QCursor.pos().y(), 270, 200)
-        # dialog.show()
-        # dialog.positive(self.positive)
 
     def positive(self, text):
         """ 新增歌单 """

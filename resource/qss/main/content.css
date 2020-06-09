@@ -1,0 +1,78 @@
+/****************************************** 歌单页面样式 ******************************************/
+QLineEdit#le_search_music_list {
+    border: 1px solid #e1e1e2;
+    height: 20px;
+    border-radius: 10px;
+    padding: 2px 4px;
+    background-color: #ffffff;
+    color: #cccccc;
+    selection-color: yellow;
+    selection-background-color: blue;
+}
+
+QWidget#widget_2 {
+    background-color: #fafafa;
+    border: none
+}
+
+QLabel#label_4 {
+    color: #c62f2f;
+    font-size: 15px;
+}
+
+QTableWidget#musics {
+    border: none;
+    background: #fafafa;
+}
+
+QTableWidget#musics::item::selected {
+    background: #e3e3e5
+}
+
+/****************************************** 本地音乐页面样式 ******************************************/
+QTableWidget#tb_local_music {
+    border: none
+}
+
+QTableWidget#tb_local_music::item::selected {
+    background: #e3e3e5
+}
+
+QLineEdit#le_search_local_music {
+    border: 1px solid #E1E1E2;
+    height: 20px;
+    border-radius: 10px;
+    padding: 2px 4px;
+    background-color: #ffffff;
+    color: #000000;
+    selection-color: yellow;
+    selection-background-color: blue;
+}
+
+QPushButton#btn_choose_dir {
+    background: none;
+    color: #0a63a8;
+    border: none;
+}
+
+
+QHeaderView {
+    font-size: 12px;
+    color: #666666;
+    border-top: 1px solid #e1e1e2;
+    border-bottom: 1px solid #e1e1e2;
+}
+
+QHeaderView::section {
+    background: #fafafa;
+    border: none;
+    border-right: 1px solid #e1e1e2;
+    height: 30px;
+}
+
+
+QHeaderView::section:hover {
+    background: #ebeced;
+    border: none
+}
+

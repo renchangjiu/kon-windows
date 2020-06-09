@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QCheckBox, QFileDialog
 
 from src.Apps import Apps
 from src.common.Optionals import Optionals
+from src.common.QssHelper import QssHelper
 from src.component.ScanPaths import ScanPaths
 from src.component.config.ScannedPath import ScannedPath
 from src.ui.ScannedPathDialogUI import Ui_Dialog
@@ -12,10 +13,9 @@ from src.ui.ScannedPathDialogUI import Ui_Dialog
 class ScannedPathsDialog(QtWidgets.QDialog, Ui_Dialog):
     """ 选择本地音乐目录 页面 """
 
-    def __init__(self, parent):
+    def __init__(self):
         QtWidgets.QDialog.__init__(self)
         Ui_Dialog.__init__(self)
-        self.setParent(parent)
         self.setupUi(self)
 
         self.scanned_paths = Apps.config.scanned_paths.copy()
@@ -27,6 +27,13 @@ class ScannedPathsDialog(QtWidgets.QDialog, Ui_Dialog):
         self.btn_close.clicked.connect(self.close)
         self.btn_add.clicked.connect(self.show_dialog)
         self.btn_confirm.clicked.connect(self.on_confirm)
+
+    @staticmethod
+    def show_(parent):
+        dialog = ScannedPathsDialog()
+        dialog.setParent(parent)
+        dialog.setGeometry((parent.width() - dialog.width()) / 2, (parent.height() - dialog.height()) / 2, 0, 0)
+        dialog.show()
 
     def add_checkbox(self, scp: ScannedPath):
         # FIXME: text 不显示 & 符号
@@ -76,18 +83,9 @@ class ScannedPathsDialog(QtWidgets.QDialog, Ui_Dialog):
 
     def init_ui(self):
         self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        # self.setModal(True)
         self.setWindowModality(Qt.WindowModal)
-        self.setGeometry((self.parent().width() - self.width()) / 2, (self.parent().height() - self.height()) / 2, 0, 0)
-        # scrollArea -> scrollAreaWidgetContents -> verticalLayout
-        self.setStyleSheet("background:#fafafa;border-right:1px solid #c8c8c8;")
-        self.header.setStyleSheet(
-            "QWidget#header{border:1px solid #c8c8c8;border-bottom:1px solid #e1e1e2;background:#fafafa;}")
-        self.label_2.setStyleSheet("border-left:1px solid #c8c8c8;border-right:1px solid #c8c8c8;")
-        self.scrollArea.setStyleSheet(
-            "QScrollArea#scrollArea{border:none;border-left:1px solid #c8c8c8;}")
+
         self.scrollAreaWidgetContents.setStyleSheet("{font-size:16px;}")
-        self.label.setStyleSheet("border:none")
         self.scrollAreaWidgetContents.setStyleSheet(
             "QWidget{border:none;}"
             "QCheckBox::indicator::unchecked{image:url(./resource/image/checkbox-unchecked.png);}" +
@@ -99,17 +97,7 @@ class ScannedPathsDialog(QtWidgets.QDialog, Ui_Dialog):
                                                           "QScrollBar::sub-line{none;}"
                                                           "QScrollBar::add-line{background:transparent;}")
         self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.footer.setStyleSheet(
-            "QWidget#footer{border:1px solid #c8c8c8;border-top:1px solid #e1e1e2;background:#f5f5f7;}")
-
-        self.btn_close.setStyleSheet("QPushButton{border-image:url(./resource/image/choose-music-dir-page-关闭.png)}")
-        self.btn_confirm.setStyleSheet(
-            "QPushButton{width:80px; height:28px;color:#ffffff;border: 1px solid #e1e1e2;background-color:#0c73c2;border-radius:5px}" +
-            "QPushButton:hover{background-color:#1167a8}")
-        self.btn_add.setStyleSheet(
-            "QPushButton{width:80px; height:28px;border: 1px solid #e1e1e2;background-color:#ffffff;border-radius:5px}" +
-            "QPushButton:hover{background-color:#f5f5f7}")
+        self.setStyleSheet(QssHelper.load("/ScannedPathsDialog.css"))
         self.btn_close.setCursor(Qt.PointingHandCursor)
         self.btn_confirm.setCursor(Qt.PointingHandCursor)
         self.btn_add.setCursor(Qt.PointingHandCursor)
-        self.header.setCursor(Qt.SizeAllCursor)

@@ -1,0 +1,62 @@
+QDialog#Dialog {
+    background-color: #FAFAFA;
+    border: 1px solid #c8c8c8;
+}
+
+QWidget#header {
+    border: 1px solid #c8c8c8;
+    border-bottom: 1px solid #e1e1e2;
+    background-color: #fafafa;
+}
+
+QLabel#label {
+    border: none
+}
+
+QLabel#label_2 {
+    border-left: 1px solid #c8c8c8;
+    border-right: 1px solid #c8c8c8;
+}
+
+QScrollArea#scrollArea {
+    border: none;
+    background-color: #FAFAFA;
+    border-left: 1px solid #c8c8c8;
+    border-right: 1px solid #c8c8c8;
+}
+
+QPushButton#btn_add {
+    width: 80px;
+    height: 28px;
+    border: 1px solid #e1e1e2;
+    background-color: #ffffff;
+    border-radius: 5px
+}
+
+QPushButton#btn_add:hover {
+    background-color: #f5f5f7
+
+}
+
+QPushButton#btn_confirm {
+    width: 80px;
+    height: 28px;
+    color: #ffffff;
+    border: 1px solid #e1e1e2;
+    background-color: #0c73c2;
+    border-radius: 5px
+}
+
+QPushButton#btn_confirm:hover {
+    background-color: #1167a8
+}
+
+QPushButton#btn_close {
+    border-image: url(/resource/image/choose-music-dir-page-关闭.png)
+}
+
+QWidget#footer {
+    border: 1px solid #c8c8c8;
+    border-top: 1px solid #e1e1e2;
+    background: #f5f5f7;
+}

@@ -2,11 +2,12 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QCursor
 
 from src.common.QssHelper import QssHelper
-from src.component.Const import Const
 from src.ui.AddMusicListDialogUI import Ui_Dialog
 
 
 class AddMusicListDialog(QtWidgets.QDialog, Ui_Dialog):
+    """ 创建歌单页面。 """
+
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
         Ui_Dialog.__init__(self)
