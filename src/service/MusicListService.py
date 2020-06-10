@@ -9,12 +9,11 @@ from src.component.Playlist import Playlist
 class MusicListService:
     def __init__(self) -> None:
         super().__init__()
-        self.music_dao = None
-        self.music_list_dao = None
-
-    def init(self):
         self.music_dao = MusicDao()
         self.music_list_dao = MusicListDao()
+
+    def init(self):
+        return self
 
     @staticmethod
     def copy(source: MusicList) -> MusicList:
@@ -32,14 +31,14 @@ class MusicListService:
 
     def get_local_music(self) -> MusicList:
         """获取本地音乐歌单, 同时查出该歌单下的所属音乐"""
-        music_list = self.music_list_dao.get_by_id(MusicList.DEFAULT_ID)
+        music_list = self.music_list_dao.get(MusicList.DEFAULT_ID)
         musics = self.music_dao.list_by_mid(music_list.id)
         music_list.musics = musics
         return music_list
 
-    def get_by_id(self, id_: int) -> MusicList:
+    def get(self, id_: int) -> MusicList:
         """ 根据ID获取歌单信息, 同时获取该歌单的所属音乐 """
-        music_list = self.music_list_dao.get_by_id(id_)
+        music_list = self.music_list_dao.get(id_)
         musics = self.music_dao.list_by_mid(id_)
         music_list.musics = musics
         return music_list

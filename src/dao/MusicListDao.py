@@ -3,7 +3,7 @@ from datetime import datetime
 
 from src.component.Const import Const
 from src.model.MusicList import MusicList
-from src.util.string_util import StringUtils
+from src.util.Strings import Strings
 
 
 class MusicListDao:
@@ -18,9 +18,9 @@ class MusicListDao:
         # sql = "select * from t_music_list where is_deleted = 0 and created > 0 order by created"
         sql = "select * from t_music_list where is_deleted = 0 "
         if ml is not None:
-            if StringUtils.is_not_empty(ml.id):
+            if Strings.is_not_empty(ml.id):
                 sql = sql + " and id = '" + str(ml.id) + "'"
-            if StringUtils.is_not_empty(ml.name):
+            if Strings.is_not_empty(ml.name):
                 sql = sql + " and name = '" + str(ml.name) + "'"
         sql = sql + "order by created desc"
         cursor = self.conn.cursor()
@@ -49,7 +49,7 @@ class MusicListDao:
             music_lists.append(music_list)
         return music_lists
 
-    def get_by_id(self, id_: int) -> MusicList:
+    def get(self, id_: int) -> MusicList:
         """ get by id """
         sql = "select * from t_music_list where id = ? and is_deleted = 0"
         cursor = self.conn.cursor()

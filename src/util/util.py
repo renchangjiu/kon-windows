@@ -62,7 +62,7 @@ def convert2music_list(obj) -> MusicList:
     return obj
 
 
-def convert2music(obj) -> Music:
+def convert2music(obj: Music) -> Music:
     """ 把参数转换成Music, 以方便IDE提示(参数必须是Music类型)"""
     return obj
 

@@ -26,3 +26,11 @@ class Const(object):
         :param relative_path: 以 /resource/ 为根目录的相对路径, 如: /image/app-icon.png
         """
         return Const.res + relative_path
+
+    @staticmethod
+    def dp(relative_path: str) -> str:
+        """ 根据参数的相对路径, 返回其绝对路径。
+
+        :param relative_path: 以 /data/ 为根目录的相对路径, 如: /playlist.json
+        """
+        return Const.data + relative_path

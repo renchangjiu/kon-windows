@@ -1,6 +1,12 @@
+import json
+import os
+
 from PyQt5 import QtCore
 from PyQt5.QtCore import QObject
 
+from src.service.MusicService import MusicService
+from src.util.IOs import IOs
+from src.component.Const import Const
 from src.model.Music import Music
 
 
@@ -11,23 +17,24 @@ class Playlist(QObject):
 
     # Music is current-music
     current_music_change = QtCore.pyqtSignal(Music)
-    # current_index_change = QtCore.pyqtSignal
-    test_sig = QtCore.pyqtSignal(str)
 
-    # 单曲循环
-    current_item_in_loop_mode = 1
-    # 列表循环
-    loop_mode = 2
-    # 随机播放
-    random_mode = 3
-    # 顺序播放(列表播放完则停止)
-    sequential_mode = 4
+    # 播放模式: 列表循环
+    MODE_LOOP = 1
+
+    # 播放模式: 随机播放
+    MODE_RANDOM = 2
+
+    # 播放模式: 单曲循环
+    MODE_SINGLE_LOOP = 3
 
     def __init__(self):
         super().__init__()
         self.__musics = []
-        self.play_mode = 2
-        self.__current_index = -1
+        self.mode = 1
+        self.index = -1
+        self.position = -1
+        self.volume = 50
+        self.mute = 0
 
     def get_musics(self):
         return self.__musics
@@ -35,11 +42,11 @@ class Playlist(QObject):
     def set_musics(self, musics):
         self.__musics = musics
 
-    def set_play_mode(self, PlayList_mode):
-        self.play_mode = PlayList_mode
+    def set_mode(self, mode: int):
+        self.mode = mode
 
-    def get_play_mode(self):
-        return self.play_mode
+    def get_mode(self):
+        return self.mode
 
     def add_music(self, music):
         self.__musics.append(music)
@@ -51,7 +58,7 @@ class Playlist(QObject):
         return len(self.__musics)
 
     def get_current_index(self):
-        return self.__current_index
+        return self.index
 
     def get(self, index):
         return self.__musics[index]
@@ -61,23 +68,23 @@ class Playlist(QObject):
         # print("index ", index)
         if index != -1:
             self.__musics.pop(index)
-            if index <= self.__current_index:
-                if self.__current_index != 0:
-                    self.__current_index -= 1
+            if index <= self.index:
+                if self.index != 0:
+                    self.index -= 1
                 if self.size() == 0:
-                    self.__current_index = -1
+                    self.index = -1
 
     # 根据索引删除
     def __remove_2(self, index):
         print(index)
         self.__musics.pop(index)
-        if index < self.__current_index:
+        if index < self.index:
             print("<")
-            self.__current_index -= 1
+            self.index -= 1
 
     def clear(self):
         self.__musics = list()
-        self.__current_index = -1
+        self.index = -1
 
     def is_empty(self):
         return len(self.__musics) > 0
@@ -104,33 +111,55 @@ class Playlist(QObject):
 
     def set_current_index(self, index):
         if self.size() > 0:
-            self.__current_index = index
+            self.index = index
             self.current_music_change.emit(self.get_current_music())
 
     def get_current_music(self) -> Music:
         if self.size() > 0:
-            return self.__musics[self.__current_index]
+            return self.__musics[self.index]
 
     def get_music(self, index):
         return self.__musics[index]
 
     def next(self):
-        if self.get_play_mode() == self.loop_mode:
+        if self.mode == self.MODE_LOOP:
             # 如果索引是play_list 的最后一项, 则置索引为0
-            if self.__current_index == self.size() - 1:
-                self.__current_index = 0
+            if self.index == self.size() - 1:
+                self.index = 0
             else:
-                self.__current_index += 1
+                self.index += 1
             self.current_music_change.emit(self.get_current_music())
 
     def previous(self):
-        if self.get_play_mode() == self.loop_mode:
+        if self.mode == self.MODE_LOOP:
             # 如果索引是play_list 的第一项, 则置索引为length-1(即最后一项)
-            if self.__current_index == 0:
-                self.__current_index = self.size() - 1
+            if self.index == 0:
+                self.index = self.size() - 1
             else:
-                self.__current_index -= 1
+                self.index -= 1
             self.current_music_change.emit(self.get_current_music())
+
+    def init(self):
+        if not os.path.exists(Const.dp("/playlist.json")):
+            self.save()
+        obj = json.loads(IOs.read(Const.dp("/playlist.json")))
+        ids = obj["ids"]
+        list_ = MusicService().init().batch_get(ids)
+        print(obj)
+
+    def save(self):
+        obj = self.__structure()
+        IOs.write(Const.dp("/playlist.json"), json.dumps(obj))
+
+    def __structure(self) -> dict:
+        return {
+            "ids": list(map(lambda v: v.id, self.__musics)),
+            "mode": self.mode,
+            "index": self.index,
+            "position": self.position,
+            "volume": self.volume,
+            "mute": self.mute
+        }
 
     def __str__(self):
         if len(self.__musics) != 0:

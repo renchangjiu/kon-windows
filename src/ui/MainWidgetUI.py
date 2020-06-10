@@ -168,9 +168,9 @@ class Ui_Form(object):
         self.gridLayout_5.setObjectName("gridLayout_5")
         spacerItem2 = QtWidgets.QSpacerItem(55, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout_5.addItem(spacerItem2, 0, 1, 1, 1)
-        self.music_count = QtWidgets.QLabel(self.widget_2)
-        self.music_count.setObjectName("music_count")
-        self.gridLayout_5.addWidget(self.music_count, 0, 4, 1, 1)
+        self.lb_music_count = QtWidgets.QLabel(self.widget_2)
+        self.lb_music_count.setObjectName("lb_music_count")
+        self.gridLayout_5.addWidget(self.lb_music_count, 0, 4, 1, 1)
         spacerItem3 = QtWidgets.QSpacerItem(478, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout_5.addItem(spacerItem3, 2, 3, 1, 1)
         spacerItem4 = QtWidgets.QSpacerItem(20, 148, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
@@ -195,9 +195,9 @@ class Ui_Form(object):
         self.gridLayout_5.addWidget(self.line, 0, 5, 1, 1)
         spacerItem6 = QtWidgets.QSpacerItem(20, 138, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.gridLayout_5.addItem(spacerItem6, 2, 4, 1, 1)
-        self.music_list_play_count = QtWidgets.QLabel(self.widget_2)
-        self.music_list_play_count.setObjectName("music_list_play_count")
-        self.gridLayout_5.addWidget(self.music_list_play_count, 0, 6, 1, 1)
+        self.lb_played_count = QtWidgets.QLabel(self.widget_2)
+        self.lb_played_count.setObjectName("lb_played_count")
+        self.gridLayout_5.addWidget(self.lb_played_count, 0, 6, 1, 1)
         self.music_list_name = QtWidgets.QLabel(self.widget_2)
         font = QtGui.QFont()
         font.setPointSize(15)
@@ -407,7 +407,7 @@ class Ui_Form(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 81, 39))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 98, 39))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.gridLayout = QtWidgets.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout.setContentsMargins(0, 20, 0, 0)
@@ -488,6 +488,7 @@ class Ui_Form(object):
         spacerItem21 = QtWidgets.QSpacerItem(13, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem21)
         self.slider_progress = QtWidgets.QSlider(self.footer)
+        self.slider_progress.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.slider_progress.setOrientation(QtCore.Qt.Horizontal)
         self.slider_progress.setObjectName("slider_progress")
         self.horizontalLayout_2.addWidget(self.slider_progress)
@@ -575,17 +576,17 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
         self.main_stacked_widget.setCurrentIndex(0)
-        self.stackedWidget_2.setCurrentIndex(1)
+        self.stackedWidget_2.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "kon"))
         self.le_search.setPlaceholderText(_translate("Form", "搜索音乐"))
-        self.music_count.setText(_translate("Form", "歌曲数\n"
+        self.lb_music_count.setText(_translate("Form", "歌曲数\n"
 "7"))
         self.music_list_image.setText(_translate("Form", "TextLabel"))
-        self.music_list_play_count.setText(_translate("Form", "播放数\n"
+        self.lb_played_count.setText(_translate("Form", "播放数\n"
 "78"))
         self.music_list_name.setText(_translate("Form", "TextLabel"))
         self.music_list_date.setText(_translate("Form", "2018-12-12创建"))

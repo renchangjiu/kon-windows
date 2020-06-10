@@ -1,4 +1,4 @@
-class StringUtils(object):
+class Strings(object):
 
     @staticmethod
     def is_not_empty(string: str):
@@ -6,7 +6,7 @@ class StringUtils(object):
 
     @staticmethod
     def is_empty(string: str):
-        return not StringUtils.is_not_empty(string)
+        return not Strings.is_not_empty(string)
 
     @staticmethod
     def is_not_blank(string: str):
@@ -14,4 +14,4 @@ class StringUtils(object):
 
     @staticmethod
     def is_blank(string: str):
-        return not StringUtils.is_not_blank(string)
+        return not Strings.is_not_blank(string)

@@ -2,12 +2,12 @@ import sqlite3
 
 from src.component.Const import Const
 from src.model.Music import Music
-from src.util.string_util import StringUtils
+from src.util.Strings import Strings
 
 
 class MusicDao:
     def __init__(self):
-        self.database = Const.data + "/data.db"
+        self.database = Const.dp("/data.db")
         self.conn = sqlite3.connect(self.database, check_same_thread=False)
 
     def list_by_mid(self, mid: int) -> list:
@@ -20,10 +20,10 @@ class MusicDao:
         musics_ = []
         cursor = self.conn.cursor()
         cursor.execute(sql, (mid,))
-        ret = cursor.fetchall()
+        res = cursor.fetchall()
         cursor.close()
-        for row in ret:
-            m = self.__row_2_music(row)
+        for row in res:
+            m = self.__row2music(row)
             musics_.append(m)
         return musics_
 
@@ -31,40 +31,44 @@ class MusicDao:
         sql = "select * from t_music where id = ?"
         cursor = self.conn.cursor()
         cursor.execute(sql, (_id,))
-        ret = cursor.fetchall()[0]
+        res = cursor.fetchall()[0]
         cursor.close()
-        m = self.__row_2_music(ret)
-        return m
+        music = self.__row2music(res)
+        return music
+
+    def batch_get(self, ids: list) -> list:
+        sql = "select * from t_music where id in (%s)" % ",".join(ids)
+        cursor = self.conn.cursor()
+        cursor.execute(sql)
+        res = cursor.fetchall()
+        cursor.close()
+        return list(map(lambda v: self.__row2music(v), res))
 
     def list_(self, m: Music) -> list:
         sql = "select * from t_music where 1 = 1"
         if m is not None:
-            if StringUtils.is_not_empty(m.id):
+            if Strings.is_not_empty(m.id):
                 sql = sql + " and id = '" + str(m.id) + "'"
-            if StringUtils.is_not_empty(m.mid):
+            if Strings.is_not_empty(m.mid):
                 sql = sql + " and mid = '" + str(m.mid) + "'"
-            if StringUtils.is_not_empty(m.path):
+            if Strings.is_not_empty(m.path):
                 sql = sql + " and path = '" + m.path + "'"
-        musics_ = []
         cursor = self.conn.cursor()
         cursor.execute(sql)
-        ret = cursor.fetchall()
+        res = cursor.fetchall()
         cursor.close()
-        for row in ret:
-            m = self.__row_2_music(row)
-            musics_.append(m)
-        return musics_
+        return list(map(lambda v: self.__row2music(v), res))
 
     def insert(self, music: Music):
         sql = "insert into t_music values (null, ?, ?, ?, ?, ?, ?, ?)"
-        self.conn.execute(sql, self.__music_2_row(music))
+        self.conn.execute(sql, self.__music2row(music))
         self.conn.commit()
 
     def batch_insert(self, musics: list):
         """ 批量插入 """
         sql = "insert into t_music values (null, ?, ?, ?, ?, ?, ?, ?)"
         for m in musics:
-            self.conn.execute(sql, self.__music_2_row(m))
+            self.conn.execute(sql, self.__music2row(m))
         self.conn.commit()
 
     def delete(self, id_: int):
@@ -90,13 +94,11 @@ class MusicDao:
         self.conn.commit()
 
     @staticmethod
-    def __music_2_row(m: Music) -> tuple:
-        return (
-            m.mid, m.path, m.size, m.title,
-            m.artist, m.album, m.duration)
+    def __music2row(m: Music) -> tuple:
+        return m.mid, m.path, m.size, m.title, m.artist, m.album, m.duration
 
     @staticmethod
-    def __row_2_music(row: tuple):
+    def __row2music(row: tuple):
         """
         把表中查询到的一行数据封装成一个Music对象
         :param row: 一行数据

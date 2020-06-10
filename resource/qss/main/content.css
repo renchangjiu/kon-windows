@@ -1,5 +1,13 @@
+#main_stacked_widget{
+    border-bottom: 1px solid #E1E1E2
+}
 /****************************************** 歌单页面样式 ******************************************/
-QLineEdit#le_search_music_list {
+#widget_2 {
+    background-color: #fafafa;
+    border: none
+}
+
+#le_search_music_list {
     border: 1px solid #e1e1e2;
     height: 20px;
     border-radius: 10px;
@@ -10,35 +18,37 @@ QLineEdit#le_search_music_list {
     selection-background-color: blue;
 }
 
-QWidget#widget_2 {
-    background-color: #fafafa;
-    border: none
+#lb_music_count {
+    color: #999999
+}
+#lb_played_count {
+    color: #999999
 }
 
-QLabel#label_4 {
+#label_4 {
     color: #c62f2f;
     font-size: 15px;
 }
 
-QTableWidget#musics {
+#musics {
     border: none;
     background: #fafafa;
 }
 
-QTableWidget#musics::item::selected {
+#musics::item::selected {
     background: #e3e3e5
 }
 
 /****************************************** 本地音乐页面样式 ******************************************/
-QTableWidget#tb_local_music {
+#tb_local_music {
     border: none
 }
 
-QTableWidget#tb_local_music::item::selected {
+#tb_local_music::item::selected {
     background: #e3e3e5
 }
 
-QLineEdit#le_search_local_music {
+#le_search_local_music {
     border: 1px solid #E1E1E2;
     height: 20px;
     border-radius: 10px;
@@ -49,7 +59,7 @@ QLineEdit#le_search_local_music {
     selection-background-color: blue;
 }
 
-QPushButton#btn_choose_dir {
+#btn_choose_dir {
     background: none;
     color: #0a63a8;
     border: none;

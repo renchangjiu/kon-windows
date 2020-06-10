@@ -1,31 +1,68 @@
-QDialog#Dialog {
+#Dialog {
     background-color: #FAFAFA;
     border: 1px solid #c8c8c8;
 }
 
-QWidget#header {
+#header {
     border: 1px solid #c8c8c8;
     border-bottom: 1px solid #e1e1e2;
     background-color: #fafafa;
 }
 
-QLabel#label {
+#label {
     border: none
 }
 
-QLabel#label_2 {
+#label_2 {
     border-left: 1px solid #c8c8c8;
     border-right: 1px solid #c8c8c8;
 }
 
-QScrollArea#scrollArea {
+#scrollArea {
     border: none;
     background-color: #FAFAFA;
     border-left: 1px solid #c8c8c8;
     border-right: 1px solid #c8c8c8;
 }
 
-QPushButton#btn_add {
+#scrollAreaWidgetContents {
+    font-size: 16px;
+    border: none;
+}
+
+QScrollBar {
+    background: #fafafa;
+    width: 8px;
+    border: none;
+}
+
+QScrollBar::handle {
+    border: none;
+    background: #e1e1e2;
+    border-radius: 4px;
+}
+
+QScrollBar::handle:hover {
+    background: #cfcfd1;
+}
+
+QScrollBar::sub-line {
+    display: none;
+}
+
+QScrollBar::add-line {
+    background: transparent;
+}
+
+QCheckBox::indicator::unchecked {
+    image: url(/resource/image/checkbox-unchecked.png)
+}
+
+QCheckBox::indicator::checked {
+    image: url(/resource/image/checkbox-checked.png);
+}
+
+#btn_add {
     width: 80px;
     height: 28px;
     border: 1px solid #e1e1e2;
@@ -33,12 +70,12 @@ QPushButton#btn_add {
     border-radius: 5px
 }
 
-QPushButton#btn_add:hover {
+#btn_add:hover {
     background-color: #f5f5f7
 
 }
 
-QPushButton#btn_confirm {
+#btn_confirm {
     width: 80px;
     height: 28px;
     color: #ffffff;
@@ -47,15 +84,15 @@ QPushButton#btn_confirm {
     border-radius: 5px
 }
 
-QPushButton#btn_confirm:hover {
+#btn_confirm:hover {
     background-color: #1167a8
 }
 
-QPushButton#btn_close {
-    border-image: url(/resource/image/choose-music-dir-page-关闭.png)
+#btn_close {
+    border-image: url(/resource/image/close3.png)
 }
 
-QWidget#footer {
+#footer {
     border: 1px solid #c8c8c8;
     border-top: 1px solid #e1e1e2;
     background: #f5f5f7;

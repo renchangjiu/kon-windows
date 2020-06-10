@@ -421,7 +421,7 @@
                  </spacer>
                 </item>
                 <item row="0" column="4">
-                 <widget class="QLabel" name="music_count">
+                 <widget class="QLabel" name="lb_music_count">
                   <property name="text">
                    <string>歌曲数
 7</string>
@@ -514,7 +514,7 @@ color: rgb(225, 225, 226);</string>
                  </spacer>
                 </item>
                 <item row="0" column="6">
-                 <widget class="QLabel" name="music_list_play_count">
+                 <widget class="QLabel" name="lb_played_count">
                   <property name="text">
                    <string>播放数
 78</string>
@@ -1059,7 +1059,7 @@ color: rgb(225, 225, 226);</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>81</width>
+            <width>98</width>
             <height>39</height>
            </rect>
           </property>

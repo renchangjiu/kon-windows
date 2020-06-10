@@ -48,7 +48,7 @@ class PlayListDialog(QWidget, Ui_Form):
         # 若点击的是链接按钮, 则跳转到对应的歌单页面
         if column == 3:
             music = self.parent().cur_play_list.get(row)
-            music_list = self.music_list_service.get_by_id(music.mid)
+            music_list = self.music_list_service.get(music.mid)
             self.parent().navigation.setFocus()
             self.parent().navigation.setCurrentRow(2)
 

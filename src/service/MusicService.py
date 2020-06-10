@@ -1,21 +1,21 @@
 import os
+
 from src.dao.MusicDao import MusicDao
 from src.dao.MusicListDao import MusicListDao
 from src.model.Music import Music
 from src.model.MusicList import MusicList
-from src.util import util
 from src.service.MP3Parser import MP3
+from src.util import util
 
 
 class MusicService:
     def __init__(self) -> None:
         super().__init__()
-        self.music_dao = None
-        self.music_list_dao = None
-
-    def init(self):
         self.music_dao = MusicDao()
         self.music_list_dao = MusicListDao()
+
+    def init(self):
+        return self
 
     @staticmethod
     def gen_music_by_path(path: str, mid: int):
@@ -46,9 +46,14 @@ class MusicService:
         musics = self.music_dao.list_by_mid(mid)
         return tuple(musics)
 
-    def get_by_id(self, _id: int) -> Music:
-        """根据ID获取歌曲"""
-        return self.music_dao.select_by_id(_id)
+    def get(self, id_: int) -> Music:
+        """ 根据ID获取歌曲 """
+        return self.music_dao.select_by_id(id_)
+
+    def batch_get(self, ids: list) -> list:
+        """ 根据ID列表获取歌曲列表 """
+        ids = list(map(lambda v: str(v), ids))
+        return self.music_dao.batch_get(ids)
 
     def contains(self, mid: str, path: str) -> bool:
         """根据歌单ID和path判断该歌单内是否已经有相同的歌曲"""
@@ -95,7 +100,7 @@ class MusicService:
 
     def index_of(self, id_: int, music_list: MusicList) -> int:
         """ 判断某歌曲是否属于某歌单, 是则返回该歌曲在该歌单中的索引, 否则返回-1 """
-        music = self.get_by_id(id_)
+        music = self.get(id_)
         if music.mid != music_list.id:
             return -1
         musics = music_list.musics
@@ -108,7 +113,7 @@ class MusicService:
     def search(self, keyword: str, mid: int) -> MusicList:
         """ 在该歌单内, 根据title, artist, album搜索, 返回搜索结果集. """
         keyword = keyword.lower()
-        ret = self.music_list_dao.get_by_id(mid)
+        ret = self.music_list_dao.get(mid)
         musics = self.list4mid(mid)
         ret.musics = []
         for m in musics:

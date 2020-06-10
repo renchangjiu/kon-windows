@@ -1,9 +1,9 @@
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QCheckBox, QFileDialog
 
 from src.Apps import Apps
-from src.common.Optionals import Optionals
+from src.util.Optionals import Optionals
 from src.common.QssHelper import QssHelper
 from src.component.ScanPaths import ScanPaths
 from src.component.config.ScannedPath import ScannedPath
@@ -22,6 +22,10 @@ class ScannedPathsDialog(QtWidgets.QDialog, Ui_Dialog):
         self.init_ui()
         self.init_data()
         self.init_connect()
+
+    def init_ui(self):
+        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setStyleSheet(QssHelper.load("/ScannedPathsDialog.css"))
 
     def init_connect(self):
         self.btn_close.clicked.connect(self.close)
@@ -80,24 +84,3 @@ class ScannedPathsDialog(QtWidgets.QDialog, Ui_Dialog):
             self.parent().label_search_state.setText("正在更新本地音乐列表...")
         else:
             self.parent().label_search_state.setText("更新完成")
-
-    def init_ui(self):
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.setWindowModality(Qt.WindowModal)
-
-        self.scrollAreaWidgetContents.setStyleSheet("{font-size:16px;}")
-        self.scrollAreaWidgetContents.setStyleSheet(
-            "QWidget{border:none;}"
-            "QCheckBox::indicator::unchecked{image:url(./resource/image/checkbox-unchecked.png);}" +
-            "QCheckBox::indicator::checked{image:url(./resource/image/checkbox-checked.png);}")
-
-        self.scrollArea.verticalScrollBar().setStyleSheet("QScrollBar{background:#fafafa; width:8px;border:none;}"
-                                                          "QScrollBar::handle{border:none;background:#e1e1e2; border-radius:4px;}"
-                                                          "QScrollBar::handle:hover{background:#cfcfd1;}"
-                                                          "QScrollBar::sub-line{none;}"
-                                                          "QScrollBar::add-line{background:transparent;}")
-        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setStyleSheet(QssHelper.load("/ScannedPathsDialog.css"))
-        self.btn_close.setCursor(Qt.PointingHandCursor)
-        self.btn_confirm.setCursor(Qt.PointingHandCursor)
-        self.btn_add.setCursor(Qt.PointingHandCursor)

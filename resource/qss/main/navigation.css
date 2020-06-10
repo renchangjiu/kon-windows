@@ -57,3 +57,11 @@ QScrollBar::add-page {
 QScrollBar::sub-page {
     background: #f5f5f7;
 }
+
+#btn_add_music_list {
+    border-image: url(/resource/image/添加.png)
+}
+
+#btn_add_music_list:hover {
+    border-image: url(/resource/image/添加2.png)
+}
