@@ -1,3 +1,6 @@
+from src.util.Jsons import Jsons
+
+
 class Music:
     def __init__(self):
         # 歌曲ID
@@ -18,14 +21,17 @@ class Music:
         self.duration = None
 
     def __str__(self):
-        ret = "Music [path: %s, from: none,  title: %s, artist: %s, album: %s, duration: %d, size: %s" % (
-            self.path, self.title, self.artist, self.album,
-            self.duration, self.size)
-        if self.image != "" and self.image != b"":
-            ret += ", image: has image ]"
-        else:
-            ret += ", image: ]"
-        return ret
+        obj = {
+            "id": self.id,
+            "mid": self.mid,
+            "path": self.path,
+            "title": self.title,
+            "artist": self.artist,
+            "album": self.album,
+            "duration": self.duration,
+            "size": self.size,
+        }
+        return Jsons.dumps(obj)
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
 import time
 
+from src.component.Playlist import Playlist
 from src.dao.MusicDao import MusicDao
 from src.dao.MusicListDao import MusicListDao
 from src.model.MusicList import MusicList
-from src.component.Playlist import Playlist
 
 
 class MusicListService:
@@ -13,6 +13,8 @@ class MusicListService:
         self.music_list_dao = MusicListDao()
 
     def init(self):
+        self.music_dao.init()
+        self.music_list_dao.init()
         return self
 
     @staticmethod

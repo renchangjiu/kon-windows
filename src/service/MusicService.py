@@ -15,6 +15,8 @@ class MusicService:
         self.music_list_dao = MusicListDao()
 
     def init(self):
+        self.music_dao.init()
+        self.music_list_dao.init()
         return self
 
     @staticmethod
@@ -51,9 +53,14 @@ class MusicService:
         return self.music_dao.select_by_id(id_)
 
     def batch_get(self, ids: list) -> list:
-        """ 根据ID列表获取歌曲列表 """
+        """ 批量根据ID列表获取歌曲列表 """
         ids = list(map(lambda v: str(v), ids))
-        return self.music_dao.batch_get(ids)
+        res = self.music_dao.batch_get(ids)
+        # 按照ID顺序排序
+        map_ = dict()
+        for music in res:
+            map_[music.id] = music
+        return list(map(lambda v: map_.get(int(v)), ids))
 
     def contains(self, mid: str, path: str) -> bool:
         """根据歌单ID和path判断该歌单内是否已经有相同的歌曲"""

@@ -8,7 +8,10 @@ from src.util.Strings import Strings
 
 class MusicListDao:
     def __init__(self):
-        # 连接到SQLite数据库, 数据库文件是test.db, 如果文件不存在，会自动在当前目录创建
+        self.database = ""
+        self.conn = sqlite3.connect(self.database)
+
+    def init(self):
         self.database = Const.data + "/data.db"
         self.conn = sqlite3.connect(self.database)
 
@@ -83,12 +86,6 @@ class MusicListDao:
             print(err)
 
     def insert(self, music_list: MusicList):
-        """
-        id integer primary key autoincrement,
-          name text  not null, -- 歌单名
-          play_count integer  not null, -- 播放次数
-          created text  not null, -- 创建时间, yyyy-mm-dd
-          is_deleted int default 0 check ( is_deleted = 1 or is_deleted = 0 ) """
         sql = "insert into t_music_list values (null, ?, 0, ?, 0)"
         self.conn.execute(sql, (music_list.name, music_list.created,))
         self.conn.commit()
@@ -101,6 +98,7 @@ class MusicListDao:
     def __row_2_music_list(row: tuple) -> MusicList:
         """
         把表中查询到的一行数据封装成一个 MusicList 对象
+
         :param row: 一行数据
         :return: MusicList
         """

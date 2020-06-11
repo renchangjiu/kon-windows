@@ -1,4 +1,5 @@
 from src.model.Music import Music
+from src.util.Jsons import Jsons
 
 
 class MusicList:
@@ -28,13 +29,11 @@ class MusicList:
         return self.musics[index]
 
     def __str__(self):
-        ret = "MusicList [\n\tid: %s\n\tname: %s,\n\tplay_count: %d\n\tcreted: %s\n\tsize: %d" % (
-            self.id, self.name, self.play_count, self.created, len(self.musics))
-        ret += "\n\tmusic:[\n"
-        for music in self.musics:
-            ret += music.__str__()
-        ret += "\t]\n]"
-        return ret
+        obj = {
+            "id": self.id,
+            "name": self.name,
+        }
+        return Jsons.dumps(obj)
 
 
 if __name__ == "__main__":

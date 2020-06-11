@@ -7,6 +7,11 @@ from src.util.Strings import Strings
 
 class MusicDao:
     def __init__(self):
+        self.database = ""
+        # 仅为了方便IDE提示
+        self.conn = sqlite3.connect(self.database, check_same_thread=False)
+
+    def init(self):
         self.database = Const.dp("/data.db")
         self.conn = sqlite3.connect(self.database, check_same_thread=False)
 
