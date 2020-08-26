@@ -114,7 +114,6 @@ class MusicListDao:
         return music_list
 
     def close(self):
-        # 关闭Connection:
         self.conn.close()
 
 
