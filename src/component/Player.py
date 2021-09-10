@@ -1,8 +1,10 @@
-import re
+from threading import Lock
 
-from PyQt5.QtCore import QObject, QProcess, QTimer
+from PyQt5 import QtCore
+from PyQt5.QtCore import QObject, QUrl
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 
-from src.component.Const import Const
+from src.util.Commons import Commons
 
 
 class Player(QObject):
@@ -11,145 +13,106 @@ class Player(QObject):
     state_playing = 2
     state_paused = 3
 
-    __duration_ptn = re.compile("ANS_LENGTH=(.*?)\\\\r")
-    __position_ptn = re.compile("ANS_TIME_POSITION=(.*?)\\\\r")
+    # 信号: 当音量变化时, 参数为当前音量.
+    volumeChanged = QtCore.pyqtSignal(int)
+
+    # 信号: 当播放位置变化时, 参数为当前位置
+    positionChanged = QtCore.pyqtSignal(int)
+
+    # 信号: 当播放状态变化时, 参数为当前状态
+    stateChanged = QtCore.pyqtSignal(int)
+
+    # 信号: 当静音状态变化时, 参数为当前状态
+    mutedChanged = QtCore.pyqtSignal(int)
 
     def __init__(self) -> None:
         super().__init__()
-        # 音量
-        self.__volume = 50
+        self.__path = None
+        self.__lock = Lock()
+        self.__player = QMediaPlayer()
+        self.__player.setVolume(50)
+        self.__player.positionChanged.connect(self.onPositionChanged)
 
-        # 是否静音
-        self.__mute = False
-
-        # 音乐文件路径
-        self.__path = ""
-
-        # 播放结束的回调方法
-        self.__complete_callback = None
-
-        # 负责操作 mplayer
-        self.__process = QProcess(self)
-        self.__process.readyReadStandardOutput.connect(self.__read_standard_output)
-        self.__process.readyReadStandardError.connect(self.__read_error_output)
-
-        # 播放状态
-        self.__state = self.state_idle
-
-        # 当前播放进度, 单位: 毫秒
-        self.__position = 0
-
-        # 时长, 单位: 毫秒
-        self.__duration = 0
-
-        # 定时器, 每隔0.1s 使 mplayer 输出时间信息(duration & position)
-        self.timer = QTimer(self)
-        self.timer.start(100)
-        self.timer.timeout.connect(self.__get_info)
-
-    def prepare(self, path: str):
+    def play(self, path: str):
+        self.__lock.acquire()
+        """
+        开始或继续播放。如果以前已暂停播放，则将从暂停的位置继续播放。
+        如果播放已停止或之前从未开始过，则播放将从头开始。
+        """
+        status = self.__player.mediaStatus()
+        if status == QMediaPlayer.NoMedia or self.__path != path:
+            self.stop()
+            temp = path
+            if not path.endswith(".wav"):
+                # TODO: 缓存
+                dest = "D:/temp.wav"
+                Commons.export2wave(path, dest)
+                temp = dest
+            content = QMediaContent(QUrl.fromLocalFile(temp))
+            self.__player.setMedia(content)
         self.__path = path
-        self.__state = self.state_prepared
-        return self
-
-    def start(self):
-        """ 开始或继续播放。如果以前已暂停播放，则将从暂停的位置继续播放。如果播放已停止或之前从未开始过，则播放将从头开始。"""
-        if self.__state == self.state_paused:
-            self.__process.write(b"pause\n")
-            self.__state = self.state_playing
-        elif self.__state == self.state_prepared:
-            cmd = Const.res + "/lib/mplayer.exe -slave -quiet -volume %d \"%s\"" % (self.__volume, self.__path)
-            self.__process.start(cmd)
-            self.__process.write(b"get_time_length\n")
-            self.__state = self.state_playing
-        return self
+        state = self.__player.state()
+        if state == QMediaPlayer.PlayingState:
+            self.__player.pause()
+        else:
+            self.__player.play()
+        player_state = self.__player.state()
+        self.stateChanged.emit(player_state)
+        self.__lock.release()
 
     def pause(self):
         """ 暂停播放 """
-        if self.__state == self.state_playing:
-            self.__process.write(b"pause\n")
-            self.__state = self.state_paused
+        self.__player.pause()
+        self.stateChanged.emit(self.__player.state())
 
     def stop(self):
-        self.__process.write(b"quit 1")
-        self.__process.kill()
-        self.__state = self.state_idle
+        self.__player.stop()
+        self.__player.setMedia(QMediaContent())
 
-    def volume(self, vol=-1) -> int:
-        """ 获取或设置音量
-        :param vol:
+    def getVolume(self) -> int:
+        """ 获取音量 """
+        return self.__player.volume()
+
+    def setVolume(self, volume: int):
         """
-        if 0 <= vol <= 0:
-            self.__volume = vol
-            self.__process.write(b"volume %d 50\n" % vol)
-        return self.__volume
-
-    def mute(self, mute=None) -> bool:
-        """获取或设置静音状态.
-
-        :param mute: 若为 true, 则设置为静音; 若为 false, 则设置为非静音;
+        设置音量, 范围从0(静音)到100(全音量).
+        默认情况下，音量为100.
         """
-        if mute:
-            self.__mute = mute
-            self.__process.write(b"mute 1\n")
-        else:
-            self.__mute = mute
-            self.__process.write(b"mute 0\n")
-        return self.__mute
+        self.__player.setVolume(volume)
+        self.volumeChanged.emit(volume)
+
+    def getMuted(self) -> bool:
+        """ 获取静音状态. """
+        return self.__player.isMuted()
+
+    def setMuted(self, muted: bool):
+        """ 设置静音状态. """
+        self.__player.setMuted(muted)
+        self.mutedChanged.emit(muted)
+
+    def getState(self) -> int:
+        """ 获取播放状态. """
+        return self.__player.state()
 
     def playing(self) -> bool:
-        """ 当前是否处于播放状态。 """
-        return self.__state == self.state_playing
+        """ 当前是否处于播放状态. """
+        return self.__player.state() == QMediaPlayer.PlayingState
 
-    def seek(self, position: int):
-        """ 跳跃到指定的时间位置。
+    def setPosition(self, position: int):
+        """
+        跳跃到指定的时间位置。
         :param position: 绝对时间位置, 毫秒。
         """
-        self.__process.write(b"seek %.1f 2\n" % (position / 1000))
+        self.__player.setPosition(position)
+        self.positionChanged.emit(position)
 
-    def listen(self, callback):
-        """ 设置播放结束的回调方法 """
-        self.__complete_callback = callback
+    def getPosition(self) -> int:
+        """ 获取当前播放进度. """
+        return self.__player.position()
 
-    def position(self) -> int:
-        """ 获取当前播放进度。 """
-        return self.__position
+    def getDuration(self) -> int:
+        """ 获取时长. """
+        return self.__player.duration()
 
-    def duration(self) -> int:
-        """ 获取时长。 """
-        return self.__duration
-
-    def __get_info(self):
-        if self.__state == self.state_playing:
-            self.__process.write(b"get_time_pos\n")
-
-    def __read_standard_output(self):
-        while self.__process.canReadLine():
-            output = str(self.__process.readLine())
-            print(output)
-            self.__parse_output(output)
-
-    def __parse_output(self, output: str):
-        position_match = self.__position_ptn.search(output)
-        # 处理播放位置
-        if position_match is not None:
-            self.__position = int(float(position_match.group(1))) * 1000
-            return
-        duration_match = self.__duration_ptn.search(output)
-        # 处理时长
-        if duration_match is not None:
-            self.__duration = int(float(duration_match.group(1))) * 1000
-            return
-        # 处理结束事件
-        if output.find("Exiting... (End of file)") != -1:
-            print("当前歌曲播放结束")
-            self.__state = self.state_idle
-            self.__path = ""
-            if self.__complete_callback is not None:
-                self.__complete_callback()
-            return
-
-    def __read_error_output(self):
-        while self.__process.canReadLine():
-            line = self.__process.readLine()
-            print(line)
+    def onPositionChanged(self, position: int):
+        self.positionChanged.emit(position)
