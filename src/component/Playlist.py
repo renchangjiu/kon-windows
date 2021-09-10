@@ -11,7 +11,8 @@ from src.model.Music import Music
 
 
 class Playlist(QObject):
-    """播放列表
+    """
+    播放列表
         根据path & from 来判断是否是来自同一歌单同一首音乐
     """
 
@@ -112,9 +113,9 @@ class Playlist(QObject):
     def set_current_index(self, index):
         if self.size() > 0:
             self.index = index
-            self.current_music_change.emit(self.get_current_music())
+            self.current_music_change.emit(self.getCurrentMusic())
 
-    def get_current_music(self) -> Music:
+    def getCurrentMusic(self) -> Music:
         if self.size() > 0:
             return self.__musics[self.index]
 
@@ -128,7 +129,7 @@ class Playlist(QObject):
                 self.index = 0
             else:
                 self.index += 1
-            self.current_music_change.emit(self.get_current_music())
+            self.current_music_change.emit(self.getCurrentMusic())
 
     def previous(self):
         if self.mode == self.MODE_LOOP:
@@ -137,7 +138,7 @@ class Playlist(QObject):
                 self.index = self.size() - 1
             else:
                 self.index -= 1
-            self.current_music_change.emit(self.get_current_music())
+            self.current_music_change.emit(self.getCurrentMusic())
 
     def init(self):
         if not os.path.exists(Const.dp("/playlist.json")):

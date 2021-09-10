@@ -4,6 +4,7 @@ import re
 from PyQt5.QtCore import Qt, QTimer, QProcess, QEvent, QSize, QModelIndex, QObject
 from PyQt5.QtGui import QPixmap, QFont, QIcon, QImage, QFontMetrics, QCursor, QCloseEvent, QMouseEvent, QMovie, \
     QPaintEvent
+from PyQt5.QtMultimedia import QMediaPlayer
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QListWidgetItem, QTableWidgetItem, \
     QAction, QMenu, QLabel, QWidgetAction, QHBoxLayout
 
@@ -37,6 +38,7 @@ class MainWindow(QWidget, Ui_Form):
         self.music_service = Apps.music_service
         self.music_list_service = Apps.music_list_service
         self.config = Apps.config
+        self.player = Player()
         # 播放信息
         self.process = None
         # 音量
@@ -74,12 +76,6 @@ class MainWindow(QWidget, Ui_Form):
 
         # 重新搜索本地音乐
         ScanPaths.scan(self.on_scan)
-        # self.tt()
-
-    def tt(self):
-        self.player = Player()
-        self.player.prepare(Const.res + "/放課後ティータイム - Listen!!.mp3").start()
-        self.player.seek(200000)
 
     def on_scan(self, state: int):
         if state == 1:
@@ -226,9 +222,9 @@ class MainWindow(QWidget, Ui_Form):
 
     # 若当前播放的音乐属于该歌单, 则为其设置喇叭图标
     def set_icon_item(self):
-        if self.playlist is None or self.playlist.get_current_music() is None:
+        if self.playlist is None or self.playlist.getCurrentMusic() is None:
             return
-        cur_music = self.playlist.get_current_music()
+        cur_music = self.playlist.getCurrentMusic()
         # 找到当前播放的音乐在该歌单中的索引
         playing_row = self.music_service.index_of(cur_music.id, self.cur_music_list)
         if playing_row != -1:
@@ -296,7 +292,7 @@ class MainWindow(QWidget, Ui_Form):
         else:
             if self.music_info_widget.isHidden():
                 self.music_info_widget.show()
-            music = self.playlist.get_current_music()
+            music = self.playlist.getCurrentMusic()
             image_data = MP3(music.path).image
             if image_data == b"":
                 image = QPixmap(Const.res + "/image/default_music_image.png")
@@ -348,8 +344,8 @@ class MainWindow(QWidget, Ui_Form):
         self.btn_start.clicked.connect(self.play_pause)
         self.btn_previous.clicked.connect(self.previous_music)
         self.btn_play_list.clicked.connect(self.show_play_list)
-        self.slider_volume.valueChanged.connect(self.set_volume)
-        self.slider_progress.sliderReleased.connect(self.seek_music)
+        self.slider_volume.valueChanged.connect(self.setVolume)
+        self.slider_progress.sliderReleased.connect(self.seekMusic)
         self.playlist.current_music_change.connect(self.on_playlist_change)
 
         # musics
@@ -369,6 +365,10 @@ class MainWindow(QWidget, Ui_Form):
         # 播放列表页面
         self.play_list_page.pushButton_2.clicked.connect(self.on_clear_clicked)
 
+        # player
+        self.player.stateChanged.connect(self.onStateChanged)
+        self.player.positionChanged.connect(self.onPositionChanged)
+
     # 当点击了播放列表页的清空按钮
     def on_clear_clicked(self):
         self.playlist.clear()
@@ -376,8 +376,8 @@ class MainWindow(QWidget, Ui_Form):
         self.music_info_widget.hide()
         self.stop_current()
         self.label_play_count.setText("0")
-        self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/播放.png)}" +
-                                     "QPushButton:hover{border-image:url(./resource/image/播放2.png)}")
+        self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/btnPausedState.png)}" +
+                                     "QPushButton:hover{border-image:url(./resource/image/btnPausedStateHover.png)}")
 
     def init_shortcut(self):
         pause_play_act = QAction(self)
@@ -684,7 +684,7 @@ class MainWindow(QWidget, Ui_Form):
         self.label_play_count.setText(str(self.playlist.size()))
         self.playlist.set_current_index(self.playlist.get_current_index() + 1)
         self.stop_current()
-        if not os.path.exists(self.playlist.get_current_music().path):
+        if not os.path.exists(self.playlist.getCurrentMusic().path):
             self.next_music()
             return
         self.play()
@@ -809,6 +809,34 @@ class MainWindow(QWidget, Ui_Form):
         act5.triggered.connect(lambda: self.on_act_del_from_disk(musics))
         self.lm_menu.exec(QCursor.pos())
 
+    # 当播放状态变化
+    def onStateChanged(self, state: int):
+        image = "btnPausedState.png"
+        imageHover = "btnPausedStateHover.png"
+        if state == QMediaPlayer.PlayingState:
+            image = "btnPlayingState.png"
+            imageHover = "btnPlayingStateHover.png"
+        style = "QPushButton{border-image:url(./resource/image/%s)}" \
+                "QPushButton:hover{border-image:url(./resource/image/%s)}" % (image, imageHover)
+        self.btn_start.setStyleSheet(style)
+
+    def onPositionChanged(self, position: int):
+        duration = self.player.getDuration()
+        if duration == 0:
+            return
+        # 进度条
+        pos = int(float(position) / duration * 100)
+        if not self.slider_progress.isSliderDown():
+            self.slider_progress.setValue(pos)
+
+        # duration label
+        format_duration = util.format_time(int(duration / 1000))
+        self.label_duration.setText(format_duration)
+
+        # position label
+        position = util.format_time(int(position / 1000))
+        self.label_pos.setText(position)
+
     def del_music_list(self, music_list: MusicList):
         """ 删除歌单 """
         self.music_list_service.logic_delete(music_list.id)
@@ -840,40 +868,41 @@ class MainWindow(QWidget, Ui_Form):
         self.show_local_music_page_data()
 
     def play_pause(self):
-        if self.playlist is not None and self.playlist.size() > 0:
-            if self.state == self.playing_state:
-                self.process.write(b"pause\n")
-                self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/播放.png)}" +
-                                             "QPushButton:hover{border-image:url(./resource/image/播放2.png)}")
-                self.state = self.paused_state
-                self.set_icon_item()
-            elif self.state == self.paused_state:
-                if self.process is None:
-                    self.play()
-                    self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/暂停.png)}" +
-                                                 "QPushButton:hover{border-image:url(./resource/image/暂停2.png)}")
-                    if self.is_mute:
-                        self.process.write(b"mute 1\n")
-                    self.state = self.playing_state
-                else:
-                    self.process.write(b"pause\n")
-                    self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/暂停.png)}" +
-                                                 "QPushButton:hover{border-image:url(./resource/image/暂停2.png)}")
-                    # 如果进度条被拖动
-                    if self.percent_pos != -0.1:
-                        pos = int(self.percent_pos * self.duration)
-                        self.process.write(b"seek %d 2\n" % pos)
-                        self.percent_pos = -0.1
-                    self.state = self.playing_state
-                self.set_icon_item()
+        if self.playlist is None or self.playlist.size() == 0:
+            return
+        music = self.playlist.getCurrentMusic()
+        self.player.play(music.path)
+
+        self.set_icon_item()
+        # if self.state == QMediaPlayer.PlayingState:
+        #     self.process.write(b"pause\n")
+        #     self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/btnPausedState.png)}" +
+        #                                  "QPushButton:hover{border-image:url(./resource/image/btnPausedStateHover.png)}")
+        #     self.state = self.paused_state
+        #     self.set_icon_item()
+        # elif self.state == QMediaPlayer.PausedState:
+        #     if self.process is None:
+        #         self.play()
+        #         self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/暂停.png)}" +
+        #                                      "QPushButton:hover{border-image:url(./resource/image/暂停2.png)}")
+        #         if self.is_mute:
+        #             self.process.write(b"mute 1\n")
+        #         self.state = self.playing_state
+        #     else:
+        #         self.process.write(b"pause\n")
+        #         self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/暂停.png)}" +
+        #                                      "QPushButton:hover{border-image:url(./resource/image/暂停2.png)}")
+        #         # 如果进度条被拖动
+        #         if self.percent_pos != -0.1:
+        #             pos = int(self.percent_pos * self.duration)
+        #             self.process.write(b"seek %d 2\n" % pos)
+        #             self.percent_pos = -0.1
+        #         self.state = self.playing_state
+        #     self.set_icon_item()
 
     # 设置音量
-    def set_volume(self, value: int):
-        if self.process is not None:
-            self.process.write(b"volume %d 50\n" % value)
-            self.volume = value
-        else:
-            self.volume = value
+    def setVolume(self, value: int):
+        self.player.setVolume(value)
 
     def get_elided_text(self, font: QFont, _str: str, max_width: int):
         fm = QFontMetrics(font)
@@ -905,7 +934,7 @@ class MainWindow(QWidget, Ui_Form):
 
     # 抽取出来的播放方法, 注意: 对播放状态的调整应由自己控制
     def play(self):
-        music = self.playlist.get_current_music()
+        music = self.playlist.getCurrentMusic()
         self.process = QProcess(self)
         command = Const.res + "/lib/mplayer.exe -slave -quiet -volume %d \"%s\"" % (self.volume, music.path)
         self.process.start(command)
@@ -926,53 +955,39 @@ class MainWindow(QWidget, Ui_Form):
             duration_match = duration_pattern.search(output)
             position_match = position_pattern.search(output)
             # 处理时长
-            if duration_match is not None:
-                d = duration_match.group(1)
-                self.duration = float(d)
-                format_duration = util.format_time(d)
-                self.label_duration.setText(format_duration)
-            # 处理播放位置
-            if position_match is not None:
-                p = position_match.group(1)
-                position = util.format_time(p)
-                self.label_pos.setText(position)
+            # if duration_match is not None:
+            #     d = duration_match.group(1)
+            #     self.duration = float(d)
+            #     format_duration = util.format_time(d)
+            #     self.label_duration.setText(format_duration)
+            # # 处理播放位置
+            # if position_match is not None:
+            #     p = position_match.group(1)
+            #     position = util.format_time(p)
+            #     self.label_pos.setText(position)
 
-                time = int(float(p) * 1000)
-                self.lrc_scroll(lrc, time)
-                if self.duration != -1:
-                    slider_position = int(float(p) / self.duration * 100)
-                    if not self.slider_progress.isSliderDown():
-                        self.slider_progress.setValue(slider_position)
-            # 一曲放完
-            if output.find("Exiting... (End of file)") != -1:
-                print("当前歌曲播放完毕, 即将播放下一曲")
-                self.info_reset()
-                self.stop_current()
-                self.playlist.next()
-                self.music_list_service.play_count_incr(self.cur_music_list.id)
-                self.update_music_list()
-                self.lb_played_count.setText(
-                    "<p>播放数</p><p style='text-align: right'>%d</p>" % self.cur_music_list.play_count)
-                self.show_music_info()
-                self.play()
-                if self.is_mute:
-                    self.process.write(b"mute 1\n")
+            time = int(float(p) * 1000)
+            self.lrc_scroll(lrc, time)
+            # if self.duration != -1:
+            #     slider_position = int(float(p) / self.duration * 100)
+            #     if not self.slider_progress.isSliderDown():
+            #         self.slider_progress.setValue(slider_position)
+        # 一曲放完
+        if output.find("Exiting... (End of file)") != -1:
+            print("当前歌曲播放完毕, 即将播放下一曲")
+            self.info_reset()
+            self.stop_current()
+            self.playlist.next()
+            self.music_list_service.play_count_incr(self.cur_music_list.id)
+            self.update_music_list()
+            self.lb_played_count.setText(
+                "<p>播放数</p><p style='text-align: right'>%d</p>" % self.cur_music_list.play_count)
+            self.show_music_info()
+            self.play()
+            if self.is_mute:
+                self.process.write(b"mute 1\n")
 
     def lrc_scroll(self, lrc, time):
-        # print(self.scrollArea.height())
-        # print(self.scrollArea.verticalScrollBar().maximum())
-        # pos = (line - 15) * 31 + 489/2
-        # ret = lrc.show(time)
-        # cur_line = ret[0]
-        # print("%d %d" % (ret[0], ret[1]))
-        # pos = (ret[0] - 15) * 31 + self.scrollArea.height() / 2
-        # pos = ret[1] * 34 + (ret[0] - 15 - ret[1]) * 31 + self.scrollArea.height() / 2
-        # print(str(ret[1]) + " " + str(pos))
-        # print(self.is_wheeling)
-        # if not self.is_wheeling:
-        #     self.scrollArea.verticalScrollBar().setSliderPosition(pos)
-        # self.label_lyric.setText(ret[2])
-        # self.label_lyric.ver
         self.scrollArea.verticalScrollBar().setValue(self.min)
         self.min += 1
         print(self.scrollArea.verticalScrollBar().maximum())
@@ -991,9 +1006,9 @@ class MainWindow(QWidget, Ui_Form):
             self.stop_current()
             self.playlist.previous()
             # 若上一首歌曲已不存在, 则尝试播放上上一首
-            if not os.path.exists(self.playlist.get_current_music().path):
-                Toast.show_(self, "该歌曲已不存在(%s)" % self.playlist.get_current_music().path, False, 3000)
-                print(self.playlist.get_current_music().path + "\t不存在")
+            if not os.path.exists(self.playlist.getCurrentMusic().path):
+                Toast.show_(self, "该歌曲已不存在(%s)" % self.playlist.getCurrentMusic().path, False, 3000)
+                print(self.playlist.getCurrentMusic().path + "\t不存在")
                 self.previous_music()
                 return
             self.show_music_info()
@@ -1008,9 +1023,9 @@ class MainWindow(QWidget, Ui_Form):
             self.stop_current()
             self.playlist.next()
             # 若下一首歌曲已不存在, 则尝试播放下下一首
-            if not os.path.exists(self.playlist.get_current_music().path):
-                Toast.show_(self, "该歌曲已不存在(%s)" % self.playlist.get_current_music().path, False, 3000)
-                print(self.playlist.get_current_music().path + "\t不存在")
+            if not os.path.exists(self.playlist.getCurrentMusic().path):
+                Toast.show_(self, "该歌曲已不存在(%s)" % self.playlist.getCurrentMusic().path, False, 3000)
+                print(self.playlist.getCurrentMusic().path + "\t不存在")
                 self.next_music()
                 return
             self.show_music_info()
@@ -1020,13 +1035,12 @@ class MainWindow(QWidget, Ui_Form):
                     self.process.write(b"mute 1\n")
 
     # 定位到音乐的指定绝对位置, 秒
-    def seek_music(self):
-        value = self.slider_progress.value()
-        if self.state == self.playing_state:
-            pos = value / 100 * self.duration
-            self.process.write(b"seek %d 2\n" % pos)
-        elif self.state == self.paused_state:
-            self.percent_pos = value / 100
+    def seekMusic(self):
+        duration = self.player.getDuration()
+        if duration == 0:
+            return
+        pos = self.slider_progress.value() / 100 * duration
+        self.player.setPosition(pos)
 
     def set_mute(self):
         if self.is_mute:

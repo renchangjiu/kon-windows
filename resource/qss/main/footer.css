@@ -22,11 +22,11 @@ QPushButton#btn_next:hover {
 }
 
 QPushButton#btn_start {
-    border-image: url(/resource/image/播放.png)
+    border-image: url(/resource/image/btnPausedState.png)
 }
 
 QPushButton#btn_start:hover {
-    border-image: url(/resource/image/播放2.png)
+    border-image: url(/resource/image/btnPausedStateHover.png)
 }
 
 QPushButton#btn_mute {
@@ -42,7 +42,7 @@ QPushButton#btn_play_mode {
 }
 
 QPushButton#btn_play_mode:hover {
-    border-image: url(/resource/image/顺序播放2.png)
+    border-image: url(/resource/image/顺序btnPausedStateHover.png)
 }
 
 QPushButton#btn_desktop_lyric {

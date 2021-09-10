@@ -7,7 +7,7 @@ from src.model.MusicList import MusicList
 # 把秒级时间格式化为mm:ss形式
 def format_time(second: int) -> str:
     second = int(float(second))
-    min = "00"
+    min_ = "00"
     sec = "00"
     if second < 60:
         if second < 10:
@@ -18,14 +18,14 @@ def format_time(second: int) -> str:
         min_int = int(second / 60)
         sec_int = second % 60
         if min_int < 10:
-            min = "0" + str(min_int)
+            min_ = "0" + str(min_int)
         else:
-            min = str(min_int)
+            min_ = str(min_int)
         if sec_int < 10:
             sec = "0" + str(sec_int)
         else:
             sec = str(sec_int)
-    ret = min + ":" + sec
+    ret = min_ + ":" + sec
     return ret
 
 
@@ -65,7 +65,3 @@ def convert2music_list(obj) -> MusicList:
 def convert2music(obj: Music) -> Music:
     """ 把参数转换成Music, 以方便IDE提示(参数必须是Music类型)"""
     return obj
-
-
-if __name__ == "__main__":
-    pass

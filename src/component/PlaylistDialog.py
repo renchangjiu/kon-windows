@@ -108,7 +108,7 @@ class PlayListDialog(QWidget, Ui_Form):
         self.play_list_menu.exec(QCursor.pos())
 
     def on_act_del(self, musics: list):
-        cur = self.parent().cur_play_list.get_current_music()
+        cur = self.parent().cur_play_list.getCurrentMusic()
         playing = False
         for music in musics:
             if music.path == cur.path and music.mid == cur.mid:
@@ -125,8 +125,8 @@ class PlayListDialog(QWidget, Ui_Form):
         if self.parent().cur_play_list.size() == 0:
             self.parent().music_info_widget.hide()
             self.parent().stop_current()
-            self.parent().btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/播放.png)}" +
-                                                  "QPushButton:hover{border-image:url(./resource/image/播放2.png)}")
+            self.parent().btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/btnPausedState.png)}" +
+                                                  "QPushButton:hover{border-image:url(./resource/image/btnPausedStateHover.png)}")
 
     def create_collect_menu(self, musics: list):
         self.collect_menu.clear()
