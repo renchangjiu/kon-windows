@@ -122,7 +122,7 @@ class Playlist(QObject):
     def get_music(self, index):
         return self.__musics[index]
 
-    def next(self):
+    def next(self) -> Music:
         if self.mode == self.MODE_LOOP:
             # 如果索引是play_list 的最后一项, 则置索引为0
             if self.index == self.size() - 1:
@@ -130,6 +130,7 @@ class Playlist(QObject):
             else:
                 self.index += 1
             self.current_music_change.emit(self.getCurrentMusic())
+        return self.getCurrentMusic()
 
     def previous(self):
         if self.mode == self.MODE_LOOP:

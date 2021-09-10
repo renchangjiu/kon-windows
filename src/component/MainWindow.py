@@ -340,7 +340,7 @@ class MainWindow(QWidget, Ui_Form):
         # 歌词滚动
         # self.label_lyric.installEventFilter(self)
         self.btn_mute.clicked.connect(self.set_mute)
-        self.btn_next.clicked.connect(self.next_music)
+        self.btn_next.clicked.connect(self.nextMusic)
         self.btn_start.clicked.connect(self.play_pause)
         self.btn_previous.clicked.connect(self.previous_music)
         self.btn_play_list.clicked.connect(self.show_play_list)
@@ -685,7 +685,7 @@ class MainWindow(QWidget, Ui_Form):
         self.playlist.set_current_index(self.playlist.get_current_index() + 1)
         self.stop_current()
         if not os.path.exists(self.playlist.getCurrentMusic().path):
-            self.next_music()
+            self.nextMusic()
             return
         self.play()
         self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/暂停.png)}" +
@@ -944,48 +944,24 @@ class MainWindow(QWidget, Ui_Form):
 
     def show_play_info(self):
         duration_regex = "ANS_LENGTH=(.*?)\\\\r"
-        duration_pattern = re.compile(duration_regex)
         position_regex = "ANS_TIME_POSITION=(.*?)\\\\r"
-        position_pattern = re.compile(position_regex)
-        # 歌词
-        lrc = LRC(Const.res + "/周杰伦 - 星晴.lrc")
 
         while self.process.canReadLine():
             output = str(self.process.readLine())
-            duration_match = duration_pattern.search(output)
-            position_match = position_pattern.search(output)
-            # 处理时长
-            # if duration_match is not None:
-            #     d = duration_match.group(1)
-            #     self.duration = float(d)
-            #     format_duration = util.format_time(d)
-            #     self.label_duration.setText(format_duration)
-            # # 处理播放位置
-            # if position_match is not None:
-            #     p = position_match.group(1)
-            #     position = util.format_time(p)
-            #     self.label_pos.setText(position)
-
-            time = int(float(p) * 1000)
-            self.lrc_scroll(lrc, time)
-            # if self.duration != -1:
-            #     slider_position = int(float(p) / self.duration * 100)
-            #     if not self.slider_progress.isSliderDown():
-            #         self.slider_progress.setValue(slider_position)
-        # 一曲放完
-        if output.find("Exiting... (End of file)") != -1:
-            print("当前歌曲播放完毕, 即将播放下一曲")
-            self.info_reset()
-            self.stop_current()
-            self.playlist.next()
-            self.music_list_service.play_count_incr(self.cur_music_list.id)
-            self.update_music_list()
-            self.lb_played_count.setText(
-                "<p>播放数</p><p style='text-align: right'>%d</p>" % self.cur_music_list.play_count)
-            self.show_music_info()
-            self.play()
-            if self.is_mute:
-                self.process.write(b"mute 1\n")
+            # 一曲放完
+            if output.find("Exiting... (End of file)") != -1:
+                print("当前歌曲播放完毕, 即将播放下一曲")
+                self.info_reset()
+                self.stop_current()
+                self.playlist.next()
+                self.music_list_service.play_count_incr(self.cur_music_list.id)
+                self.update_music_list()
+                self.lb_played_count.setText(
+                    "<p>播放数</p><p style='text-align: right'>%d</p>" % self.cur_music_list.play_count)
+                self.show_music_info()
+                self.play()
+                if self.is_mute:
+                    self.process.write(b"mute 1\n")
 
     def lrc_scroll(self, lrc, time):
         self.scrollArea.verticalScrollBar().setValue(self.min)
@@ -1017,22 +993,25 @@ class MainWindow(QWidget, Ui_Form):
                 if self.is_mute:
                     self.process.write(b"mute 1\n")
 
-    def next_music(self):
-        if self.playlist is not None and self.playlist.size() > 0:
-            self.info_reset()
-            self.stop_current()
-            self.playlist.next()
-            # 若下一首歌曲已不存在, 则尝试播放下下一首
-            if not os.path.exists(self.playlist.getCurrentMusic().path):
-                Toast.show_(self, "该歌曲已不存在(%s)" % self.playlist.getCurrentMusic().path, False, 3000)
-                print(self.playlist.getCurrentMusic().path + "\t不存在")
-                self.next_music()
-                return
-            self.show_music_info()
-            if self.state == self.playing_state:
-                self.play()
-                if self.is_mute:
-                    self.process.write(b"mute 1\n")
+    def nextMusic(self):
+        if self.playlist is None or self.playlist.size() == 0:
+            return
+        self.info_reset()
+        # self.stop_current()
+        music = self.playlist.next()
+
+        self.player.play(music.path)
+        # 若下一首歌曲已不存在, 则尝试播放下下一首
+        # if not os.path.exists(self.playlist.getCurrentMusic().path):
+        #     Toast.show_(self, "该歌曲已不存在(%s)" % self.playlist.getCurrentMusic().path, False, 3000)
+        #     print(self.playlist.getCurrentMusic().path + "\t不存在")
+        #     self.nextMusic()
+        #     return
+        self.show_music_info()
+        # if self.state == self.playing_state:
+        #     self.play()
+        #     if self.is_mute:
+        #         self.process.write(b"mute 1\n")
 
     # 定位到音乐的指定绝对位置, 秒
     def seekMusic(self):
