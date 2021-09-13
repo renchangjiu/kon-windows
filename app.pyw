@@ -13,7 +13,11 @@ from src.component.MainWindow import MainWindow
 # TODO UI细节调整
 # todo 歌单图片
 # TODO 重构 & 拆分入口文件
-def __run():
+def main():
+    Const.init(sys.argv)
+    Apps.check_app()
+    Apps.init()
+
     app = QtWidgets.QApplication(sys.argv)
     my_window = MainWindow()
     my_window.show()
@@ -21,7 +25,4 @@ def __run():
 
 
 if __name__ == "__main__":
-    Const.init(sys.argv)
-    Apps.check_app()
-    Apps.init()
-    __run()
+    main()

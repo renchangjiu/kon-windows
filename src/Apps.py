@@ -2,6 +2,7 @@ import os
 import shutil
 
 from src.component.Const import Const
+from src.component.Player import Player
 from src.component.Playlist import Playlist
 from src.component.config.Config import Config
 from src.model.MusicList import MusicList
@@ -15,6 +16,7 @@ class Apps(object):
     music_service = MusicService()
     music_list_service = MusicListService()
     playlist = Playlist()
+    player = Player()
 
     @classmethod
     def init(cls):
@@ -22,6 +24,7 @@ class Apps(object):
         cls.music_service.init()
         cls.music_list_service.init()
         cls.playlist.init()
+        cls.player.init()
 
     @staticmethod
     def check_app():

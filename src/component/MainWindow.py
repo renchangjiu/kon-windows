@@ -38,7 +38,7 @@ class MainWindow(QWidget, Ui_Form):
         self.music_service = Apps.music_service
         self.music_list_service = Apps.music_list_service
         self.config = Apps.config
-        self.player = Player()
+        self.player = Apps.player
         # 播放信息
         self.process = None
         # 音量

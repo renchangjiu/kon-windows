@@ -33,6 +33,9 @@ class Player(QObject):
         self.__player.setVolume(50)
         self.__player.positionChanged.connect(self.onPositionChanged)
 
+    def init(self):
+        pass
+
     def play(self, path: str):
         self.__lock.acquire()
         """
