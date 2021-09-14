@@ -12,4 +12,5 @@ class Commons:
         :param src: 源文件全路径
         :param dest: 目标文件全路径
         """
+        print("pydub: ", src, " -->", dest)
         AudioSegment.from_file(src).export(dest, format="wav")

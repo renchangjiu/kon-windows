@@ -129,7 +129,7 @@ class MainWindow(QWidget, Ui_Form):
         # 将歌单中的歌曲列表加载到 table widget
         if self.playlist is None:
             self.playlist = self.music_list_service.to_playlist(self.cur_music_list)
-            self.playlist.set_current_index(0)
+            self.playlist.setIndex(0)
             self.playlist.current_music_change.connect(self.on_playlist_change)
         self.show_musics_data()
 
@@ -264,27 +264,6 @@ class MainWindow(QWidget, Ui_Form):
         self.tb_local_music.setColumnWidth(4, self.tb_local_music.width() * 0.07)
         self.tb_local_music.setColumnWidth(5, self.tb_local_music.width() * 0.07)
 
-    # 当存放音乐列表的表格被双击
-    def on_tb_double_clicked(self, model_index: QModelIndex):
-        self.state = self.playing_state
-        index = model_index.row()
-        # 把当前歌单的全部音乐加入到播放列表
-        self.playlist = self.music_list_service.to_playlist(self.cur_whole_music_list)
-        self.playlist.current_music_change.connect(self.on_playlist_change)
-        # 找到被双击的音乐在 cur_whole_music_list 中的索引
-        self.playlist.set_current_index(index)
-        self.label_play_count.setText(str(self.playlist.size()))
-        self.stop_current()
-        self.play()
-        self.musics.selectRow(index)
-
-        if self.is_mute:
-            self.process.write(b"mute 1\n")
-        self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/暂停.png)}" +
-                                     "QPushButton:hover{border-image:url(./resource/image/暂停2.png)}")
-        # 读取音乐名片
-        self.show_music_info()
-
     # 显示左下音乐名片相关信息
     def show_music_info(self):
         if self.playlist.size() <= 0:
@@ -339,9 +318,9 @@ class MainWindow(QWidget, Ui_Form):
         self.timer.timeout.connect(self.get_info)
         # 歌词滚动
         # self.label_lyric.installEventFilter(self)
-        self.btn_mute.clicked.connect(self.set_mute)
+        self.btn_mute.clicked.connect(self.setMute)
         self.btn_next.clicked.connect(self.nextMusic)
-        self.btn_start.clicked.connect(self.play_pause)
+        self.btn_start.clicked.connect(self.play)
         self.btn_previous.clicked.connect(self.previous_music)
         self.btn_play_list.clicked.connect(self.show_play_list)
         self.slider_volume.valueChanged.connect(self.setVolume)
@@ -350,7 +329,7 @@ class MainWindow(QWidget, Ui_Form):
 
         # musics
         self.le_search_music_list.textChanged.connect(self.on_search)
-        self.musics.doubleClicked.connect(self.on_tb_double_clicked)
+        self.musics.doubleClicked.connect(self.onTableDoubleclick)
         self.musics.customContextMenuRequested.connect(self.on_musics_right_click)
 
         # 全屏播放页面
@@ -359,7 +338,7 @@ class MainWindow(QWidget, Ui_Form):
         # 本地音乐页面
         self.le_search_local_music.textChanged.connect(self.on_search)
         self.btn_choose_dir.clicked.connect(lambda: ScannedPathsDialog.show_(self))
-        self.tb_local_music.doubleClicked.connect(self.on_tb_double_clicked)
+        self.tb_local_music.doubleClicked.connect(self.onTableDoubleclick)
         self.tb_local_music.customContextMenuRequested.connect(self.on_tb_local_music_right_click)  # 右键菜单
 
         # 播放列表页面
@@ -368,6 +347,7 @@ class MainWindow(QWidget, Ui_Form):
         # player
         self.player.stateChanged.connect(self.onStateChanged)
         self.player.positionChanged.connect(self.onPositionChanged)
+        self.player.mutedChanged.connect(self.onMutedChanged)
 
     # 当点击了播放列表页的清空按钮
     def on_clear_clicked(self):
@@ -383,7 +363,7 @@ class MainWindow(QWidget, Ui_Form):
         pause_play_act = QAction(self)
         pause_play_act.setShortcut(Qt.Key_Space)
         self.addAction(pause_play_act)
-        pause_play_act.triggered.connect(self.play_pause)
+        pause_play_act.triggered.connect(self.play)
 
     def eventFilter(self, object: QObject, event: QEvent):
         if event.type() == QEvent.MouseButtonPress:
@@ -669,6 +649,19 @@ class MainWindow(QWidget, Ui_Form):
         act5.triggered.connect(lambda: self.on_act_del(musics))
         self.musics_menu.exec(QCursor.pos())
 
+    # 当存放音乐列表的表格被双击
+    def onTableDoubleclick(self, model_index: QModelIndex):
+        self.state = self.playing_state
+        index = model_index.row()
+        # 把当前歌单的全部音乐加入到播放列表
+        self.playlist = self.music_list_service.to_playlist(self.cur_whole_music_list)
+        self.playlist.current_music_change.connect(self.on_playlist_change)
+        # 找到被双击的音乐在 cur_whole_music_list 中的索引
+        self.playlist.setIndex(index)
+        self.label_play_count.setText(str(self.playlist.size()))
+        self.musics.selectRow(index)
+        self.play()
+
     # 选中歌单列表的音乐, 点击 "播放"
     def on_act_play(self, musics: list):
         # 1. 若选中的音乐已在播放列表中, 则移除已存在的, 然后重新加入
@@ -682,7 +675,7 @@ class MainWindow(QWidget, Ui_Form):
             self.playlist.insert_music(cur_index, music)
 
         self.label_play_count.setText(str(self.playlist.size()))
-        self.playlist.set_current_index(self.playlist.get_current_index() + 1)
+        self.playlist.setIndex(self.playlist.get_current_index() + 1)
         self.stop_current()
         if not os.path.exists(self.playlist.getCurrentMusic().path):
             self.nextMusic()
@@ -690,8 +683,6 @@ class MainWindow(QWidget, Ui_Form):
         self.play()
         self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/暂停.png)}" +
                                      "QPushButton:hover{border-image:url(./resource/image/暂停2.png)}")
-        if self.is_mute:
-            self.process.write(b"mute 1\n")
         self.state = self.playing_state
         self.show_music_info()
 
@@ -811,14 +802,14 @@ class MainWindow(QWidget, Ui_Form):
 
     # 当播放状态变化
     def onStateChanged(self, state: int):
-        image = "btnPausedState.png"
-        imageHover = "btnPausedStateHover.png"
+        css = ""
         if state == QMediaPlayer.PlayingState:
-            image = "btnPlayingState.png"
-            imageHover = "btnPlayingStateHover.png"
-        style = "QPushButton{border-image:url(./resource/image/%s)}" \
-                "QPushButton:hover{border-image:url(./resource/image/%s)}" % (image, imageHover)
-        self.btn_start.setStyleSheet(style)
+            css = "QPushButton{border-image:url(./resource/image/btnPlayingState.png)}" \
+                  "QPushButton:hover{border-image:url(./resource/image/btnPlayingStateHover.png)}"
+        else:
+            css = "QPushButton{border-image:url(./resource/image/btnPausedState.png)}" \
+                  "QPushButton:hover{border-image:url(./resource/image/btnPausedStateHover.png)}"
+        self.btn_start.setStyleSheet(css)
 
     def onPositionChanged(self, position: int):
         duration = self.player.getDuration()
@@ -836,6 +827,18 @@ class MainWindow(QWidget, Ui_Form):
         # position label
         position = util.format_time(int(position / 1000))
         self.label_pos.setText(position)
+
+    def onMutedChanged(self):
+        """ 当静音状态改变 """
+        muted = self.player.getMuted()
+        css = ""
+        if muted:
+            css = "QPushButton{border-image:url(./resource/image/btnMuted.png)}" \
+                  "QPushButton:hover{border-image:url(./resource/image/btnMutedHover.png)}"
+        else:
+            css = "QPushButton{border-image:url(./resource/image/btnNotMuted.png)}" \
+                  "QPushButton:hover{border-image:url(./resource/image/btnNotMutedHover.png)}"
+        self.btn_mute.setStyleSheet(css)
 
     def del_music_list(self, music_list: MusicList):
         """ 删除歌单 """
@@ -867,13 +870,15 @@ class MainWindow(QWidget, Ui_Form):
         self.cur_whole_music_list = self.music_list_service.get_local_music()
         self.show_local_music_page_data()
 
-    def play_pause(self):
+    def play(self):
         if self.playlist is None or self.playlist.size() == 0:
             return
         music = self.playlist.getCurrentMusic()
-        self.player.play(music.path)
+        self.player.play(music)
 
         self.set_icon_item()
+        # 读取音乐名片
+        self.show_music_info()
         # if self.state == QMediaPlayer.PlayingState:
         #     self.process.write(b"pause\n")
         #     self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/btnPausedState.png)}" +
@@ -933,7 +938,7 @@ class MainWindow(QWidget, Ui_Form):
                 self.process.write(b"get_time_pos\n")
 
     # 抽取出来的播放方法, 注意: 对播放状态的调整应由自己控制
-    def play(self):
+    def playOld(self):
         music = self.playlist.getCurrentMusic()
         self.process = QProcess(self)
         command = Const.res + "/lib/mplayer.exe -slave -quiet -volume %d \"%s\"" % (self.volume, music.path)
@@ -960,8 +965,6 @@ class MainWindow(QWidget, Ui_Form):
                     "<p>播放数</p><p style='text-align: right'>%d</p>" % self.cur_music_list.play_count)
                 self.show_music_info()
                 self.play()
-                if self.is_mute:
-                    self.process.write(b"mute 1\n")
 
     def lrc_scroll(self, lrc, time):
         self.scrollArea.verticalScrollBar().setValue(self.min)
@@ -990,8 +993,6 @@ class MainWindow(QWidget, Ui_Form):
             self.show_music_info()
             if self.state == self.playing_state:
                 self.play()
-                if self.is_mute:
-                    self.process.write(b"mute 1\n")
 
     def nextMusic(self):
         if self.playlist is None or self.playlist.size() == 0:
@@ -1000,7 +1001,7 @@ class MainWindow(QWidget, Ui_Form):
         # self.stop_current()
         music = self.playlist.next()
 
-        self.player.play(music.path)
+        self.player.play(music)
         # 若下一首歌曲已不存在, 则尝试播放下下一首
         # if not os.path.exists(self.playlist.getCurrentMusic().path):
         #     Toast.show_(self, "该歌曲已不存在(%s)" % self.playlist.getCurrentMusic().path, False, 3000)
@@ -1021,19 +1022,9 @@ class MainWindow(QWidget, Ui_Form):
         pos = self.slider_progress.value() / 100 * duration
         self.player.setPosition(pos)
 
-    def set_mute(self):
-        if self.is_mute:
-            if self.state == self.playing_state:
-                self.process.write(b"mute 0\n")
-            self.is_mute = False
-            self.btn_mute.setStyleSheet("QPushButton{border-image:url(./resource/image/喇叭.png)}" +
-                                        "QPushButton:hover{border-image:url(./resource/image/喇叭2.png)}")
-        else:
-            if self.state == self.playing_state:
-                self.process.write(b"mute 1\n")
-            self.btn_mute.setStyleSheet("QPushButton{border-image:url(./resource/image/取消静音.png)}" +
-                                        "QPushButton:hover{border-image:url(./resource/image/取消静音2.png)}")
-            self.is_mute = True
+    def setMute(self):
+        """ 设置静音 """
+        self.player.toggleMuted()
 
     def update_music_list(self, mid=None):
         """ 当歌单内音乐增加或被删除后, 需要更新相关变量 """

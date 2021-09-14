@@ -30,11 +30,11 @@ QPushButton#btn_start:hover {
 }
 
 QPushButton#btn_mute {
-    border-image: url(/resource/image/喇叭.png)
+    border-image: url(/resource/image/btnNotMuted.png)
 }
 
 QPushButton#btn_mute:hover {
-    border-image: url(/resource/image/喇叭2.png)
+    border-image: url(/resource/image/btnNotMutedHover.png)
 }
 
 QPushButton#btn_play_mode {
@@ -119,4 +119,8 @@ QSlider#slider_volume::handle:horizontal {
     border: #51b5fb 10px;
     border-radius: 5px;
     margin: -3px 0px -3px 0px;
+}
+
+.diff_add {
+
 }

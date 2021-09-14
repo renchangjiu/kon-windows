@@ -30,7 +30,7 @@ class PlayListDialog(QWidget, Ui_Form):
     # 当存放音乐列表的表格被双击
     def on_tb_double_clicked(self, index: QModelIndex):
         index = index.row()
-        self.parent().cur_play_list.set_current_index(index)
+        self.parent().cur_play_list.setIndex(index)
         self.parent().label_play_count.setText(str(self.parent().cur_play_list.size()))
         self.parent().stop_current()
         self.parent().play()

@@ -10,7 +10,7 @@ class Music:
         self.mid = None
 
         # 文件相关属性
-        self.path = None
+        self.path = ""
         self.size = None
 
         # mp3相关属性

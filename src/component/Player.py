@@ -1,18 +1,15 @@
+import os
 from threading import Lock
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 
+from src.model.Music import Music
 from src.util.Commons import Commons
 
 
 class Player(QObject):
-    state_idle = -1
-    state_prepared = 1
-    state_playing = 2
-    state_paused = 3
-
     # 信号: 当音量变化时, 参数为当前音量.
     volumeChanged = QtCore.pyqtSignal(int)
 
@@ -24,6 +21,11 @@ class Player(QObject):
 
     # 信号: 当静音状态变化时, 参数为当前状态
     mutedChanged = QtCore.pyqtSignal(int)
+    localAppDataDir = os.getenv("LOCALAPPDATA")
+    # like:
+    #   Windows: C:/Users/win10/AppData/Local/kon-windows/Temp/Music
+    #   Linux  : Not test.
+    tempDir = localAppDataDir + "/kon-windows/Temp/Music/"
 
     def __init__(self) -> None:
         super().__init__()
@@ -32,26 +34,23 @@ class Player(QObject):
         self.__player = QMediaPlayer()
         self.__player.setVolume(50)
         self.__player.positionChanged.connect(self.onPositionChanged)
+        if not os.path.exists(self.tempDir):
+            os.makedirs(self.tempDir)
 
     def init(self):
         pass
 
-    def play(self, path: str):
+    def play(self, music: Music):
         self.__lock.acquire()
         """
         开始或继续播放。如果以前已暂停播放，则将从暂停的位置继续播放。
         如果播放已停止或之前从未开始过，则播放将从头开始。
         """
         status = self.__player.mediaStatus()
+        path = music.path
         if status == QMediaPlayer.NoMedia or self.__path != path:
             self.stop()
-            temp = path
-            if not path.endswith(".wav"):
-                # TODO: 缓存
-                dest = "D:/temp.wav"
-                Commons.export2wave(path, dest)
-                temp = dest
-            content = QMediaContent(QUrl.fromLocalFile(temp))
+            content = QMediaContent(QUrl.fromLocalFile(self.trans2wave(music)))
             self.__player.setMedia(content)
         self.__path = path
         state = self.__player.state()
@@ -93,6 +92,11 @@ class Player(QObject):
         self.__player.setMuted(muted)
         self.mutedChanged.emit(muted)
 
+    def toggleMuted(self):
+        """ 切换静音状态. """
+        self.__player.setMuted(not self.__player.isMuted())
+        self.mutedChanged.emit(self.__player.isMuted())
+
     def getState(self) -> int:
         """ 获取播放状态. """
         return self.__player.state()
@@ -119,3 +123,19 @@ class Player(QObject):
 
     def onPositionChanged(self, position: int):
         self.positionChanged.emit(position)
+
+    def trans2wave(self, music: Music) -> str:
+        """ 转换格式为 wave """
+        path = music.path
+        if path.endswith(".wav"):
+            return path
+        dest = self.tempDir + str(music.id) + ".wav"
+        if os.path.exists(dest):
+            return dest
+        # 最多保留一百个歌曲缓存
+        olds = os.listdir(self.tempDir)
+        if len(olds) >= 100:
+            # 删掉一个
+            os.remove(self.tempDir + olds[0])
+        Commons.export2wave(path, dest)
+        return dest

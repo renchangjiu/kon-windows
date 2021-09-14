@@ -110,7 +110,8 @@ class Playlist(QObject):
                 return True
         return False
 
-    def set_current_index(self, index):
+    def setIndex(self, index):
+        """ 设置当前播放的歌曲下标 """
         if self.size() > 0:
             self.index = index
             self.current_music_change.emit(self.getCurrentMusic())
