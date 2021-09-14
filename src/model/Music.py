@@ -10,7 +10,7 @@ class Music:
         self.mid = None
 
         # 文件相关属性
-        self.path = ""
+        self.path = None
         self.size = None
 
         # mp3相关属性
@@ -34,5 +34,3 @@ class Music:
         return Jsons.dumps(obj)
 
 
-if __name__ == "__main__":
-    pass

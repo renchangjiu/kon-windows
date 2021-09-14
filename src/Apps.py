@@ -14,7 +14,7 @@ class Apps(object):
     """ 维护应用运行时的复杂对象 """
     config = Config()
     music_service = MusicService()
-    music_list_service = MusicListService()
+    musicListService = MusicListService()
     playlist = Playlist()
     player = Player()
 
@@ -22,7 +22,7 @@ class Apps(object):
     def init(cls):
         cls.config.init()
         cls.music_service.init()
-        cls.music_list_service.init()
+        cls.musicListService.init()
         cls.playlist.init()
         cls.player.init()
 

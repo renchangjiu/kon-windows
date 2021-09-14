@@ -19,6 +19,9 @@ class Player(QObject):
     # 信号: 当播放状态变化时, 参数为当前状态
     stateChanged = QtCore.pyqtSignal(int)
 
+    # 信号: 当媒体状态变化时, 参数为当前状态
+    mediaStatusChanged = QtCore.pyqtSignal(int)
+
     # 信号: 当静音状态变化时, 参数为当前状态
     mutedChanged = QtCore.pyqtSignal(int)
     localAppDataDir = os.getenv("LOCALAPPDATA")
@@ -33,7 +36,8 @@ class Player(QObject):
         self.__lock = Lock()
         self.__player = QMediaPlayer()
         self.__player.setVolume(50)
-        self.__player.positionChanged.connect(self.onPositionChanged)
+        self.__player.positionChanged.connect(self.__onPositionChanged)
+        self.__player.mediaStatusChanged.connect(self.__onMediaStatusChanged)
         if not os.path.exists(self.tempDir):
             os.makedirs(self.tempDir)
 
@@ -50,7 +54,7 @@ class Player(QObject):
         path = music.path
         if status == QMediaPlayer.NoMedia or self.__path != path:
             self.stop()
-            content = QMediaContent(QUrl.fromLocalFile(self.trans2wave(music)))
+            content = QMediaContent(QUrl.fromLocalFile(self.__trans2wave(music)))
             self.__player.setMedia(content)
         self.__path = path
         state = self.__player.state()
@@ -121,10 +125,13 @@ class Player(QObject):
         """ 获取时长. """
         return self.__player.duration()
 
-    def onPositionChanged(self, position: int):
+    def __onPositionChanged(self, position: int):
         self.positionChanged.emit(position)
 
-    def trans2wave(self, music: Music) -> str:
+    def __onMediaStatusChanged(self, mediaStatus: int):
+        self.mediaStatusChanged.emit(mediaStatus)
+
+    def __trans2wave(self, music: Music) -> str:
         """ 转换格式为 wave """
         path = music.path
         if path.endswith(".wav"):

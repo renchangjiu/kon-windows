@@ -52,13 +52,16 @@ class Playlist(QObject):
     def add_music(self, music):
         self.__musics.append(music)
 
-    def insert_music(self, index, music):
+    def insert(self, index, music):
         self.__musics.insert(index, music)
 
     def size(self):
         return len(self.__musics)
 
-    def get_current_index(self):
+    def isEmpty(self):
+        return len(self.__musics) == 0
+
+    def getIndex(self):
         return self.index
 
     def get(self, index):
@@ -75,6 +78,10 @@ class Playlist(QObject):
                 if self.size() == 0:
                     self.index = -1
 
+    def removeBatch(self, musics: list):
+        for m in musics:
+            self.remove(m)
+
     # 根据索引删除
     def __remove_2(self, index):
         print(index)
@@ -86,9 +93,6 @@ class Playlist(QObject):
     def clear(self):
         self.__musics = list()
         self.index = -1
-
-    def is_empty(self):
-        return len(self.__musics) > 0
 
     def contains(self, path):
         for music in self.__musics:

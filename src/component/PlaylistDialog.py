@@ -16,7 +16,7 @@ class PlayListDialog(QWidget, Ui_Form):
         Ui_Form.__init__(self)
         self.setupUi(self)
         self.setParent(parent)
-        self.music_list_service = Apps.music_list_service
+        self.musicListService = Apps.musicListService
         self.__init_ui()
         self.__init_table_widget_ui()
         self.__set_table_widget_width()
@@ -48,7 +48,7 @@ class PlayListDialog(QWidget, Ui_Form):
         # 若点击的是链接按钮, 则跳转到对应的歌单页面
         if column == 3:
             music = self.parent().cur_play_list.get(row)
-            music_list = self.music_list_service.get(music.mid)
+            music_list = self.musicListService.get(music.mid)
             self.parent().navigation.setFocus()
             self.parent().navigation.setCurrentRow(2)
 
@@ -133,7 +133,7 @@ class PlayListDialog(QWidget, Ui_Form):
         act0 = self.create_widget_action("./resource/image/添加歌单.png", "创建新歌单")
         self.collect_menu.addAction(act0)
         self.collect_menu.addSeparator()
-        mls = list(filter(lambda ml: ml.id != MusicList.DEFAULT_ID, self.music_list_service.list_(MusicList())))
+        mls = list(filter(lambda ml: ml.id != MusicList.DEFAULT_ID, self.musicListService.list_(MusicList())))
         for music_list in mls:
             act = self.create_widget_action("./resource/image/歌单.png", music_list.name, music_list)
             self.collect_menu.addAction(act)
@@ -223,7 +223,7 @@ class PlayListDialog(QWidget, Ui_Form):
         icon_label.setPixmap(QPixmap("./resource/image/musics_play.png"))
         icon_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         icon_label.setCursor(Qt.PointingHandCursor)
-        self.tableWidget.setCellWidget(play_list.get_current_index(), 0, icon_label)
+        self.tableWidget.setCellWidget(play_list.getIndex(), 0, icon_label)
         # 当行数等于13时, maximum=0, row=14->maximum = 1, row=15->maximum=2, row=16->maximum=3
         # 15-27
         # print("table widget height: ", self.tableWidget.height())
