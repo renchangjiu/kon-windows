@@ -14,6 +14,7 @@ from src.component.Const import Const
 from src.component.PlaylistDialog import PlayListDialog
 from src.component.ScanPaths import ScanPaths
 from src.component.ScannedPathsDialog import ScannedPathsDialog
+from src.model.Music import Music
 from src.model.MusicList import MusicList
 from src.service.MP3Parser import MP3
 from src.ui.MainWidgetUI import Ui_Form
@@ -32,10 +33,11 @@ class MainWindow(QWidget, Ui_Form):
         QWidget.__init__(self)
         Ui_Form.__init__(self)
 
-        self.musicService = Apps.music_service
+        self.musicService = Apps.musicService
         self.musicListService = Apps.musicListService
         self.config = Apps.config
         self.player = Apps.player
+        self.playlist = Apps.playlist
         # 音量
         self.volume = 50
 
@@ -46,17 +48,16 @@ class MainWindow(QWidget, Ui_Form):
         self.curMusicList = None
         # 包含当前歌单的全部音乐, 只用于搜索使用的库
         self.curWholeMusicList = None
-        # 当前播放列表
-        self.playlist = None
 
         self.setupUi(self)
 
         self.init_menu()
-        self.init_data()
-        self.initTableUi()
+
         self.init_ui()
-        self.init_shortcut()
-        self.init_connect()
+        self.initConnect()
+        self.initShortcut()
+        self.initData()
+        self.initTableUi()
         self.min = self.scrollArea.verticalScrollBar().minimum()
 
         # 重新搜索本地音乐
@@ -77,7 +78,7 @@ class MainWindow(QWidget, Ui_Form):
             self.label_search_state.setText("更新完成")
             self.reload_local_musics()
 
-    def init_data(self):
+    def initData(self):
         self.navigation.setIconSize(QSize(18, 18))
         font = QFont()
         font.setPixelSize(13)
@@ -103,19 +104,17 @@ class MainWindow(QWidget, Ui_Form):
             item.setData(Qt.UserRole, music_list)
             self.navigation.addItem(item)
 
-        # 启动时默认选中第一个歌单
+        # 默认选中第一个歌单
         self.navigation.setCurrentRow(0)
-        cur_id = self.navigation.currentItem().data(Qt.UserRole).id
-
-        self.update_music_list(cur_id)
+        curMusicListId = self.navigation.currentItem().data(Qt.UserRole).id
+        self.update_music_list(curMusicListId)
 
         self.stackedWidget_2.setCurrentWidget(self.music_list_detail)
         self.musics.setColumnCount(5)
         # 将歌单中的歌曲列表加载到 table widget
-        if self.playlist is None:
-            self.playlist = self.musicListService.to_playlist(self.curMusicList)
-            self.playlist.setIndex(0)
-            self.playlist.current_music_change.connect(self.on_playlist_change)
+        self.playlist.setMusics(self.curMusicList.musics)
+        print(self.playlist)
+        self.playlist.setIndex(0)
         self.show_musics_data()
 
     def initTableUi(self):
@@ -126,9 +125,9 @@ class MainWindow(QWidget, Ui_Form):
         self.tb_local_music.setHorizontalHeaderLabels(["", "音乐标题", "歌手", "专辑", "时长", "大小"])
         self.tb_local_music.setColumnCount(6)
 
-    # 当点击navigation时, 显示对应页面
-    def on_nav_clicked(self, list_item: QListWidgetItem):
-        data = list_item.data(Qt.UserRole)
+    def on_nav_clicked(self, item: QListWidgetItem):
+        """ 当点击左侧 navigation 时, 显示对应页面 """
+        data = item.data(Qt.UserRole)
         if data is None:
             return
 
@@ -173,8 +172,6 @@ class MainWindow(QWidget, Ui_Form):
             item = QTableWidgetItem(util.format_time(music.duration))
             item.setToolTip(util.format_time(music.duration))
             self.musics.setItem(i, 4, item)
-        # 若当前播放的音乐属于该歌单, 则为其设置喇叭图标
-        self.set_icon_item()
 
     # 展示本地音乐页面的表格数据
     def show_local_music_page_data(self):
@@ -203,9 +200,9 @@ class MainWindow(QWidget, Ui_Form):
             item = QTableWidgetItem(music.size)
             item.setToolTip(str(music.size))
             self.tb_local_music.setItem(i, 5, item)
-        self.set_icon_item()
+        self.setIconItem()
 
-    def set_icon_item(self):
+    def setIconItem(self):
         """ 若当前播放的音乐属于该歌单, 则为其设置喇叭图标 """
         if self.playlist is None or self.playlist.getCurrentMusic() is None:
             return
@@ -251,29 +248,28 @@ class MainWindow(QWidget, Ui_Form):
         self.tb_local_music.setColumnWidth(4, self.tb_local_music.width() * 0.07)
         self.tb_local_music.setColumnWidth(5, self.tb_local_music.width() * 0.07)
 
-    # 显示左下音乐名片相关信息
-    def show_music_info(self):
-        if self.playlist.size() <= 0:
+    def showMusicInfo(self):
+        """ 显示左下音乐名片相关信息 """
+        if self.playlist.isEmpty():
             self.music_info_widget.hide()
+            return
+        if self.music_info_widget.isHidden():
+            self.music_info_widget.show()
+        music = self.playlist.getCurrentMusic()
+        image_data = MP3(music.path).image
+        if image_data == b"":
+            image = QPixmap(Const.res + "/image/default_music_image.png")
         else:
-            if self.music_info_widget.isHidden():
-                self.music_info_widget.show()
-            music = self.playlist.getCurrentMusic()
-            image_data = MP3(music.path).image
-            if image_data == b"":
-                image = QPixmap(Const.res + "/image/default_music_image.png")
-            else:
-                image = QPixmap.fromImage(QImage.fromData(image_data))
-            max_width = 110
-            title = music.title
-            artist = music.artist
-            self.btn_music_image.setIcon(QIcon(image))
+            image = QPixmap.fromImage(QImage.fromData(image_data))
+        max_width = 110
+        title = music.title
+        artist = music.artist
+        self.btn_music_image.setIcon(QIcon(image))
 
-            self.label_music_title.setText(self.get_elided_text(self.label_music_title.font(), title, max_width))
-            self.label_music_artist.setText(self.get_elided_text(self.label_music_artist.font(), artist, max_width))
+        self.label_music_title.setText(self.get_elided_text(self.label_music_title.font(), title, max_width))
+        self.label_music_artist.setText(self.get_elided_text(self.label_music_artist.font(), artist, max_width))
 
     def init_button(self):
-        self.label_play_count.setText(str(self.playlist.size()))
         self.btn_previous.setCursor(Qt.PointingHandCursor)
         self.btn_next.setCursor(Qt.PointingHandCursor)
         self.btn_start.setCursor(Qt.PointingHandCursor)
@@ -282,7 +278,7 @@ class MainWindow(QWidget, Ui_Form):
         self.btn_play_list.setCursor(Qt.PointingHandCursor)
         self.btn_desktop_lyric.setCursor(Qt.PointingHandCursor)
 
-    def init_connect(self):
+    def initConnect(self):
         self.installEventFilter(self)
         # header
         self.header.installEventFilter(self)
@@ -292,30 +288,31 @@ class MainWindow(QWidget, Ui_Form):
         self.btn_icon.clicked.connect(lambda: self.main_stacked_widget.setCurrentWidget(self.main_page))
 
         # nav
-        self.navigation.itemClicked.connect(self.on_nav_clicked)
-        self.navigation.customContextMenuRequested.connect(self.on_nav_right_click)  # 右键菜单
         self.btn_zoom.installEventFilter(self)
         self.btn_music_image.installEventFilter(self)
         self.music_image_label.installEventFilter(self)
+        self.navigation.itemClicked.connect(self.on_nav_clicked)
         self.btn_music_image.clicked.connect(self.change_to_play_page)
+        self.navigation.customContextMenuRequested.connect(self.on_nav_right_click)  # 右键菜单
         self.btn_add_music_list.clicked.connect(lambda: AddMusicListDialog.show_(self, self.positive))
 
-        # footer & play
-        # self.slider.installEventFilter(self)
+        # footer
         # 歌词滚动
         # self.label_lyric.installEventFilter(self)
+        self.btn_start.clicked.connect(self.play)
         self.btn_mute.clicked.connect(self.setMute)
         self.btn_next.clicked.connect(self.nextMusic)
-        self.btn_start.clicked.connect(self.play)
         self.btn_previous.clicked.connect(self.previousMusic)
-        self.btn_play_list.clicked.connect(self.show_play_list)
+        self.btn_play_list.clicked.connect(self.togglePlayListDialog)
         self.slider_volume.valueChanged.connect(self.setVolume)
         self.slider_progress.sliderReleased.connect(self.seekMusic)
-        self.playlist.current_music_change.connect(self.on_playlist_change)
+
+        # playlist
+        self.playlist.changed.connect(self.onPlaylistChanged)
 
         # musics
-        self.le_search_music_list.textChanged.connect(self.on_search)
         self.musics.doubleClicked.connect(self.onTableDoubleclick)
+        self.le_search_music_list.textChanged.connect(self.on_search)
         self.musics.customContextMenuRequested.connect(self.on_musics_right_click)
 
         # 全屏播放页面
@@ -323,12 +320,9 @@ class MainWindow(QWidget, Ui_Form):
 
         # 本地音乐页面
         self.le_search_local_music.textChanged.connect(self.on_search)
-        self.btn_choose_dir.clicked.connect(lambda: ScannedPathsDialog.show_(self))
         self.tb_local_music.doubleClicked.connect(self.onTableDoubleclick)
+        self.btn_choose_dir.clicked.connect(lambda: ScannedPathsDialog.show_(self))
         self.tb_local_music.customContextMenuRequested.connect(self.on_tb_local_music_right_click)  # 右键菜单
-
-        # 播放列表页面
-        self.play_list_page.pushButton_2.clicked.connect(self.on_clear_clicked)
 
         # player
         self.player.stateChanged.connect(self.onStateChanged)
@@ -336,17 +330,7 @@ class MainWindow(QWidget, Ui_Form):
         self.player.positionChanged.connect(self.onPositionChanged)
         self.player.mediaStatusChanged.connect(self.onMediaStatusChanged)
 
-    # 当点击了播放列表页的清空按钮
-    def on_clear_clicked(self):
-        self.playlist.clear()
-        self.play_list_page.show_data(self.playlist)
-        self.music_info_widget.hide()
-        self.player.stop()
-        self.label_play_count.setText("0")
-        self.btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/btnPausedState.png)}" +
-                                     "QPushButton:hover{border-image:url(./resource/image/btnPausedStateHover.png)}")
-
-    def init_shortcut(self):
+    def initShortcut(self):
         pause_play_act = QAction(self)
         pause_play_act.setShortcut(Qt.Key_Space)
         self.addAction(pause_play_act)
@@ -354,12 +338,12 @@ class MainWindow(QWidget, Ui_Form):
 
     def eventFilter(self, object: QObject, event: QEvent):
         if event.type() == QEvent.MouseButtonPress:
-            if not self.play_list_page.isHidden():
-                self.play_list_page.hide()
+            if not self.playlistDialog.isHidden():
+                self.playlistDialog.hide()
         # 1. 如果主窗口被激活, 关闭子窗口
         if event.type() == QEvent.WindowActivate:
-            if not self.play_list_page.isHidden():
-                self.play_list_page.hide()
+            if not self.playlistDialog.isHidden():
+                self.playlistDialog.hide()
 
         # 2. 如果左下缩放按钮被鼠标左键拖动, 则缩放窗口
         if object == self.btn_zoom and event.type() == QEvent.MouseMove and event.buttons() == Qt.LeftButton:
@@ -475,7 +459,7 @@ class MainWindow(QWidget, Ui_Form):
         # ------------------ 左下音乐名片模块 ------------------ #
         self.music_image_label = QLabel(self.music_info_widget)
         Style.init_music_card_style(self.music_info_widget, self.btn_music_image, self.music_image_label)
-        self.show_music_info()
+        self.showMusicInfo()
 
         # ------------------ footer ------------------ #
         # 右下窗口缩放按钮
@@ -509,7 +493,7 @@ class MainWindow(QWidget, Ui_Form):
         self.label_lyric.setText(s)
 
         # 右下播放列表页面
-        self.play_list_page = PlayListDialog(self)
+        self.playlistDialog = PlayListDialog(self)
         # 本地音乐页面
         self.widget.setStyleSheet("QWidget#widget{background-color:#fafafa;border:none;}")
         self.search_act_2 = QAction(self)
@@ -542,18 +526,17 @@ class MainWindow(QWidget, Ui_Form):
         self.collect_menu.setStyleSheet(qss)
         self.lm_menu.setStyleSheet(qss)
 
-    def show_play_list(self):
-        if self.play_list_page.isHidden():
-            self.play_list_page.show()
-            self.play_list_page.show_data(self.playlist)
+    def togglePlayListDialog(self):
+        if self.playlistDialog.isHidden():
+            self.playlistDialog.show()
         else:
-            self.play_list_page.hide()
+            self.playlistDialog.hide()
 
     def positive(self, text):
         """ 新增歌单 """
         self.musicListService.insert(text)
         self.navigation.clear()
-        self.init_data()
+        self.initData()
 
     # 显示nav右键菜单
     def on_nav_right_click(self, pos):
@@ -640,11 +623,9 @@ class MainWindow(QWidget, Ui_Form):
     def onTableDoubleclick(self, modelIndex: QModelIndex):
         index = modelIndex.row()
         # 把当前歌单的全部音乐加入到播放列表
-        self.playlist = self.musicListService.to_playlist(self.curWholeMusicList)
-        self.playlist.current_music_change.connect(self.on_playlist_change)
+        self.playlist.setMusics(self.curMusicList.musics)
         # 找到被双击的音乐在 cur_whole_music_list 中的索引
         self.playlist.setIndex(index)
-        self.label_play_count.setText(str(self.playlist.size()))
         self.musics.selectRow(index)
         self.play()
 
@@ -661,7 +642,6 @@ class MainWindow(QWidget, Ui_Form):
             index += 1
             self.playlist.insert(index, music)
 
-        self.label_play_count.setText(str(self.playlist.size()))
         self.playlist.setIndex(self.playlist.getIndex() + 1)
         # TODO: 若歌曲文件不存在
         # if not os.path.exists(self.playlist.getCurrentMusic().path):
@@ -678,7 +658,6 @@ class MainWindow(QWidget, Ui_Form):
         for music in musics:
             index += 1
             self.playlist.insert(index, music)
-        self.label_play_count.setText(str(self.playlist.size()))
 
     def create_collect_menu(self, musics: list):
         self.collect_menu.clear()
@@ -735,7 +714,6 @@ class MainWindow(QWidget, Ui_Form):
             os.remove(music.path)
             self.playlist.remove(music)
         self.update_music_list()
-        self.label_play_count.setText(str(self.playlist.size()))
         self.show_local_music_page_data()
         # 清除已选择的项
         self.tb_local_music.clearSelection()
@@ -781,8 +759,8 @@ class MainWindow(QWidget, Ui_Form):
         act5.triggered.connect(lambda: self.on_act_del_from_disk(musics))
         self.lm_menu.exec(QCursor.pos())
 
-    # 当播放状态变化
     def onStateChanged(self, state: int):
+        """ 当播放状态变化 """
         if state == QMediaPlayer.PlayingState:
             css = "QPushButton{border-image:url(./resource/image/btnPlayingState.png)}" \
                   "QPushButton:hover{border-image:url(./resource/image/btnPlayingStateHover.png)}"
@@ -790,7 +768,10 @@ class MainWindow(QWidget, Ui_Form):
             css = "QPushButton{border-image:url(./resource/image/btnPausedState.png)}" \
                   "QPushButton:hover{border-image:url(./resource/image/btnPausedStateHover.png)}"
         self.btn_start.setStyleSheet(css)
-        self.set_icon_item()
+        self.setIconItem()
+        self.info_reset()
+        self.showMusicInfo()
+        print("stateChanged")
 
     def onPositionChanged(self, position: int):
         duration = self.player.getDuration()
@@ -830,12 +811,13 @@ class MainWindow(QWidget, Ui_Form):
             self.lb_played_count.setText(
                 "<p>播放数</p><p style='text-align: right'>%d</p>" % self.curMusicList.play_count)
             self.nextMusic()
+        print("mediaStatusChanged")
 
     def del_music_list(self, music_list: MusicList):
         """ 删除歌单 """
         self.musicListService.logic_delete(music_list.id)
         self.navigation.clear()
-        self.init_data()
+        self.initData()
 
     def on_search(self, text: str):
         text = text.strip()
@@ -846,14 +828,16 @@ class MainWindow(QWidget, Ui_Form):
         elif self.stackedWidget_2.currentWidget() == self.local_music_page:
             self.show_local_music_page_data()
 
-    def on_playlist_change(self, music):
+    def onPlaylistChanged(self):
         if self.stackedWidget_2.currentWidget() == self.music_list_detail:
             self.show_musics_data()
         elif self.stackedWidget_2.currentWidget() == self.local_music_page:
             self.show_local_music_page_data()
-        # 同步更新播放列表页的数据
-        if self.playlist is not None:
-            self.play_list_page.show_data(self.playlist)
+        self.label_play_count.setText(str(self.playlist.size()))
+        if self.playlist.isEmpty():
+            self.music_info_widget.hide()
+        self.showMusicInfo()
+        print("onPlaylistChanged")
 
     # 当改变了本地音乐的搜索路径, 重新读取本地音乐文件
     def reload_local_musics(self):
@@ -862,13 +846,7 @@ class MainWindow(QWidget, Ui_Form):
         self.show_local_music_page_data()
 
     def play(self):
-        if self.playlist.isEmpty():
-            return
-        music = self.playlist.getCurrentMusic()
-        self.player.play(music)
-        self.info_reset()
-        # 读取音乐名片
-        self.show_music_info()
+        self.player.play(self.playlist.getCurrentMusic())
 
     # 设置音量
     def setVolume(self, value: int):
@@ -915,6 +893,7 @@ class MainWindow(QWidget, Ui_Form):
         """ 定位到音乐的指定绝对位置, 秒 """
         duration = self.player.getDuration()
         if duration == 0:
+            self.slider_progress.setValue(0)
             return
         pos = self.slider_progress.value() / 100 * duration
         self.player.setPosition(pos)

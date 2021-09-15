@@ -64,7 +64,7 @@ class MusicListService:
     def to_playlist(music_list: MusicList) -> Playlist:
         """ 把MusicList 转成 Playlist """
         playlist = Playlist()
-        playlist.set_musics(music_list.musics)
+        playlist.setMusics(music_list.musics)
         return playlist
 
 

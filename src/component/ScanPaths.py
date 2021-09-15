@@ -30,7 +30,7 @@ class ScanPaths(QObject, threading.Thread):
         search_paths = list(map(lambda v: v.path, filter(lambda v: v.checked, Apps.config.scanned_paths)))
         music_files = ScanPaths.__find_music_files(search_paths)
         musics = ScanPaths.__get_mp3_info(music_files)
-        Apps.music_service.batch_insert(musics)
+        Apps.musicService.batch_insert(musics)
         self.scan_state_change.emit(2)
 
     @staticmethod

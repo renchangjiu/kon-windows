@@ -11,9 +11,9 @@ from src.service.MusicService import MusicService
 
 
 class Apps(object):
-    """ 维护应用运行时的复杂对象 """
+    """ 统一管理全局对象 """
     config = Config()
-    music_service = MusicService()
+    musicService = MusicService()
     musicListService = MusicListService()
     playlist = Playlist()
     player = Player()
@@ -21,7 +21,7 @@ class Apps(object):
     @classmethod
     def init(cls):
         cls.config.init()
-        cls.music_service.init()
+        cls.musicService.init()
         cls.musicListService.init()
         cls.playlist.init()
         cls.player.init()
@@ -34,11 +34,11 @@ class Apps(object):
         db_file = Const.data + "/data.db"
         if not os.path.exists(db_file):
             shutil.copyfile(Const.res + "/example.data.db", db_file)
-            music_service = MusicService()
-            music_service.init()
+            musicService = MusicService()
+            musicService.init()
             path = Const.res + "/放課後ティータイム - Listen!!.mp3"
-            music = music_service.gen_music_by_path(path, MusicList.DEFAULT_ID)
-            music_service.insert(music)
+            music = musicService.gen_music_by_path(path, MusicList.DEFAULT_ID)
+            musicService.insert(music)
 
         config_path = Const.data + "/config.json"
         if not os.path.exists(config_path):

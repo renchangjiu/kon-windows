@@ -8,6 +8,7 @@ from src.Apps import Apps
 from src.model.MusicList import MusicList
 from src.ui.PlaylistDialogUI import Ui_Form
 from src.util import util
+from src.util.Wrapper import Wrapper
 
 
 class PlayListDialog(QWidget, Ui_Form):
@@ -17,32 +18,75 @@ class PlayListDialog(QWidget, Ui_Form):
         self.setupUi(self)
         self.setParent(parent)
         self.musicListService = Apps.musicListService
+        self.player = Apps.player
+        self.playlist = Apps.playlist
         self.__init_ui()
         self.__init_table_widget_ui()
         self.__set_table_widget_width()
-        self.init_connect()
+        self.__initConnect()
+        self.master = Wrapper.mainWindow(self.parent())
 
-    def init_connect(self):
+    def __initConnect(self):
+        self.playlist.changed.connect(self.onPlaylistChanged)
+        self.pushButton_2.clicked.connect(self.onClearBtnClicked)
         self.tableWidget.cellPressed.connect(self.open_music_list)
-        self.tableWidget.customContextMenuRequested.connect(self.on_right_click)
-        self.tableWidget.doubleClicked.connect(self.on_tb_double_clicked)
+        self.tableWidget.doubleClicked.connect(self.onTableDoubleClicked)
+        self.tableWidget.customContextMenuRequested.connect(self.onRightClick)
 
-    # 当存放音乐列表的表格被双击
-    def on_tb_double_clicked(self, index: QModelIndex):
-        index = index.row()
-        self.parent().cur_play_list.setIndex(index)
-        self.parent().label_play_count.setText(str(self.parent().cur_play_list.size()))
-        self.parent().stop_current()
-        self.parent().play()
+    def onPlaylistChanged(self):
+        playlist = self.playlist
+        self.setGeometry(self.parent().width() - 580, 150, 580,
+                         self.parent().height() - 150 - 48)
+        self.tableWidget.clearContents()
+        self.tableWidget.setRowCount(playlist.size())
+        self.label.setText("共%d首" % playlist.size())
+        icon = QIcon("./resource/image/链接.png")
+
+        for i in range(playlist.size()):
+            self.btn_link = QLabel(self.tableWidget)
+            self.btn_link.setStyleSheet("background-color:rgba(0,0,0,0)")
+            self.btn_link.setPixmap(QPixmap("./resource/image/链接.png"))
+            self.btn_link.setAlignment(Qt.AlignCenter)
+            self.btn_link.setCursor(Qt.PointingHandCursor)
+            # self.btn_link.installEventFilter(self)
+
+            # icon_item = QTableWidgetItem()
+            # icon_item.setIcon(icon)
+            music = playlist.get(i)
+            self.tableWidget.setItem(i, 0, QTableWidgetItem("\t"))
+            self.tableWidget.setItem(i, 1, QTableWidgetItem(music.title))
+            self.tableWidget.setItem(i, 2, QTableWidgetItem(music.artist))
+            # self.tableWidget.setItem(i, 3, icon_item)
+            self.tableWidget.setCellWidget(i, 3, self.btn_link)
+
+            self.tableWidget.setItem(i, 4, QTableWidgetItem(util.format_time(music.duration)))
+
+        # 为当前音乐设置喇叭图标
+        icon_label = QLabel()
+        icon_label.setPixmap(QPixmap("./resource/image/musics_play.png"))
+        icon_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        icon_label.setCursor(Qt.PointingHandCursor)
+        self.tableWidget.setCellWidget(playlist.getIndex(), 0, icon_label)
+        # 当行数等于13时, maximum=0, row=14->maximum = 1, row=15->maximum=2, row=16->maximum=3
+        # 15-27
+        # print("table widget height: ", self.tableWidget.height())
+        # print("height: ", self.tableWidget.verticalScrollBar().height())
+        # print("maximum: ", self.tableWidget.verticalScrollBar().maximum())
+        # print("value:", self.tableWidget.verticalScrollBar().value())
+        # print("position:", self.tableWidget.verticalScrollBar().sliderPosition())
+        # self.tableWidget.verticalScrollBar().setSliderPosition(self.tableWidget.verticalScrollBar().maximum() / 2)
+
+    def onTableDoubleClicked(self, modelIndex: QModelIndex):
+        """ 当存放音乐列表的表格被双击 """
+        index = modelIndex.row()
+        self.playlist.setIndex(index)
+        self.player.play(self.playlist.getCurrentMusic())
         self.tableWidget.selectRow(index)
 
-        if self.parent().is_mute:
-            self.parent().process.write(b"mute 1\n")
-        self.parent().btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/暂停.png)}" +
-                                              "QPushButton:hover{border-image:url(./resource/image/暂停2.png)}")
-        # 读取音乐名片
-        self.parent().show_music_info()
-        self.parent().state = self.parent().playing_state
+    def onClearBtnClicked(self):
+        """ 点击清空按钮 """
+        self.playlist.clear()
+        self.player.stop()
 
     def open_music_list(self, row, column):
         # 若点击的是链接按钮, 则跳转到对应的歌单页面
@@ -73,7 +117,7 @@ class PlayListDialog(QWidget, Ui_Form):
                     self.parent().show_musics_data()
             self.hide()
 
-    def on_right_click(self):
+    def onRightClick(self):
         self.play_list_menu.clear()
         act1 = self.create_widget_action("./resource/image/nav-播放.png", "播放(Enter)")
         act2 = QAction("收藏到歌单(Ctrl+S)", self)
@@ -90,7 +134,7 @@ class PlayListDialog(QWidget, Ui_Form):
             rows.add(item.row())
         musics = []
         for row in rows:
-            music = self.parent().cur_play_list.get(row)
+            music = self.playlist.get(row)
             musics.append(music)
         # 只选中了一行
         if len(rows) == 1:
@@ -104,29 +148,20 @@ class PlayListDialog(QWidget, Ui_Form):
         self.play_list_menu.addAction(act4)
         act1.triggered.connect(lambda: self.parent().on_act_play(musics))
         act3.triggered.connect(lambda: self.parent().on_act_open_file(musics))
-        act4.triggered.connect(lambda: self.on_act_del(musics))
+        act4.triggered.connect(lambda: self.onActDel(musics))
         self.play_list_menu.exec(QCursor.pos())
 
-    def on_act_del(self, musics: list):
-        cur = self.parent().cur_play_list.getCurrentMusic()
+    def onActDel(self, musics: list):
+        cur = self.playlist.getCurrentMusic()
         playing = False
         for music in musics:
             if music.path == cur.path and music.mid == cur.mid:
                 playing = True
 
         for music in musics:
-            self.parent().cur_play_list.remove(music)
-        self.show_data(self.parent().cur_play_list)
-        self.parent().label_play_count.setText(str(self.parent().cur_play_list.size()))
+            self.playlist.remove(music)
         if playing:
-            self.parent().next_music()
-
-        # 若播放列表为空
-        if self.parent().cur_play_list.size() == 0:
-            self.parent().music_info_widget.hide()
-            self.parent().stop_current()
-            self.parent().btn_start.setStyleSheet("QPushButton{border-image:url(./resource/image/btnPausedState.png)}" +
-                                                  "QPushButton:hover{border-image:url(./resource/image/btnPausedStateHover.png)}")
+            self.parent().nextMusic()
 
     def create_collect_menu(self, musics: list):
         self.collect_menu.clear()
@@ -190,48 +225,6 @@ class PlayListDialog(QWidget, Ui_Form):
         self.tableWidget.setColumnWidth(2, self.width() * 0.17)
         self.tableWidget.setColumnWidth(3, self.width() * 0.05)
         self.tableWidget.setColumnWidth(4, self.width() * 0.12)
-
-    def show_data(self, play_list):
-        self.setGeometry(self.parent().width() - 580, 150, 580,
-                         self.parent().height() - 150 - 48)
-        self.tableWidget.clearContents()
-        self.tableWidget.setRowCount(play_list.size())
-        self.label.setText("共%d首" % play_list.size())
-        icon = QIcon("./resource/image/链接.png")
-
-        for i in range(play_list.size()):
-            self.btn_link = QLabel(self.tableWidget)
-            self.btn_link.setStyleSheet("background-color:rgba(0,0,0,0)")
-            self.btn_link.setPixmap(QPixmap("./resource/image/链接.png"))
-            self.btn_link.setAlignment(Qt.AlignCenter)
-            self.btn_link.setCursor(Qt.PointingHandCursor)
-            # self.btn_link.installEventFilter(self)
-
-            # icon_item = QTableWidgetItem()
-            # icon_item.setIcon(icon)
-            music = play_list.get(i)
-            self.tableWidget.setItem(i, 0, QTableWidgetItem("\t"))
-            self.tableWidget.setItem(i, 1, QTableWidgetItem(music.title))
-            self.tableWidget.setItem(i, 2, QTableWidgetItem(music.artist))
-            # self.tableWidget.setItem(i, 3, icon_item)
-            self.tableWidget.setCellWidget(i, 3, self.btn_link)
-
-            self.tableWidget.setItem(i, 4, QTableWidgetItem(util.format_time(music.duration)))
-
-        # 为当前音乐设置喇叭图标
-        icon_label = QLabel()
-        icon_label.setPixmap(QPixmap("./resource/image/musics_play.png"))
-        icon_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        icon_label.setCursor(Qt.PointingHandCursor)
-        self.tableWidget.setCellWidget(play_list.getIndex(), 0, icon_label)
-        # 当行数等于13时, maximum=0, row=14->maximum = 1, row=15->maximum=2, row=16->maximum=3
-        # 15-27
-        # print("table widget height: ", self.tableWidget.height())
-        # print("height: ", self.tableWidget.verticalScrollBar().height())
-        # print("maximum: ", self.tableWidget.verticalScrollBar().maximum())
-        # print("value:", self.tableWidget.verticalScrollBar().value())
-        # print("position:", self.tableWidget.verticalScrollBar().sliderPosition())
-        # self.tableWidget.verticalScrollBar().setSliderPosition(self.tableWidget.verticalScrollBar().maximum() / 2)
 
     def create_widget_action(self, icon, text, data=None):
         act = QWidgetAction(self)

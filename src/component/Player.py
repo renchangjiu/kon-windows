@@ -45,6 +45,8 @@ class Player(QObject):
         pass
 
     def play(self, music: Music):
+        if music is None:
+            return
         self.__lock.acquire()
         """
         开始或继续播放。如果以前已暂停播放，则将从暂停的位置继续播放。
