@@ -8,7 +8,6 @@ from src.Apps import Apps
 from src.model.MusicList import MusicList
 from src.ui.PlaylistDialogUI import Ui_Form
 from src.util import util
-from src.util.Wrapper import Wrapper
 
 
 class PlayListDialog(QWidget, Ui_Form):
@@ -24,7 +23,6 @@ class PlayListDialog(QWidget, Ui_Form):
         self.__init_table_widget_ui()
         self.__set_table_widget_width()
         self.__initConnect()
-        self.master = Wrapper.mainWindow(self.parent())
 
     def __initConnect(self):
         self.playlist.changed.connect(self.onPlaylistChanged)
@@ -91,7 +89,7 @@ class PlayListDialog(QWidget, Ui_Form):
     def open_music_list(self, row, column):
         # 若点击的是链接按钮, 则跳转到对应的歌单页面
         if column == 3:
-            music = self.parent().cur_play_list.get(row)
+            music = self.playlist.get(row)
             music_list = self.musicListService.get(music.mid)
             self.parent().navigation.setFocus()
             self.parent().navigation.setCurrentRow(2)
@@ -107,7 +105,7 @@ class PlayListDialog(QWidget, Ui_Form):
             if item is not None:
                 data = item.data(Qt.UserRole)
                 self.parent().navigation.setCurrentItem(item)
-                self.parent().update_music_list(data.id)
+                self.parent().updateMusicList(data.id)
                 # 若是本地音乐
                 if data.id == 0:
                     self.parent().stackedWidget_2.setCurrentWidget(self.parent().local_music_page)
@@ -240,8 +238,7 @@ class PlayListDialog(QWidget, Ui_Form):
         lb_text = QLabel(text, widget)
         if icon != "":
             lb_icon.setPixmap(QPixmap(icon))
-        widget.setStyleSheet("QWidget:hover{background:#ededef}" + ""
-                                                                   "QWidget{color:#000000;font-size:13px;}")
+        widget.setStyleSheet("QWidget:hover{background:#ededef} QWidget{color:#000000;font-size:13px;}")
         layout.addWidget(lb_icon)
         layout.addWidget(lb_text)
         layout.addStretch()
@@ -250,15 +247,11 @@ class PlayListDialog(QWidget, Ui_Form):
         return act
 
     def eventFilter(self, QObject, QEvent_):
-        # print(self.btn_link == QObject)
-
         if self.btn_link == QObject:
             if QEvent_.type() == QEvent.MouseButtonPress:
-                # print("haha")
                 item = self.tableWidget.currentItem()
                 if item is not None:
                     pass
-                    # print(item.row())
         return super().eventFilter(QObject, QEvent_)
 
     def paintEvent(self, QPaintEvent):
