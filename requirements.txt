@@ -1,4 +1,4 @@
 pyCryptodome==3.10.1
-requests==2.26.0
+requests==2.31.0
 PyQt5==5.15.4
 pydub==0.25.1
